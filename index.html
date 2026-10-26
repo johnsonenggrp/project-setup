@@ -932,7 +932,8 @@ function renderClients(){
   var list=DB.clients.slice().sort(function(a,b){return a.no<b.no?-1:a.no>b.no?1:0}).filter(function(c){return !q||(c.no+' '+c.name).toLowerCase().indexOf(q)>=0});
   $('cList').innerHTML=list.length?list.map(function(c){
     var n=usedProjNums(c.no,null).length;
-    return '<div class="crow"><span class="no">'+esc(c.no)+'</span><div class="nm"><b>'+esc(c.name)+'</b><div class="hint" style="margin:0">'+n+' project number'+(n===1?'':'s')+' known'+(c.contacts&&c.contacts.length?' · '+esc(c.contacts[0].name):'')+'</div></div>'+
+    var kn=numbersKnown(c)?n+' project number'+(n===1?'':'s')+' known':'project numbers not checked yet';
+    return '<div class="crow"><span class="no">'+esc(c.no)+'</span><div class="nm"><b>'+esc(c.name)+'</b><div class="hint" style="margin:0">'+kn+(c.contacts&&c.contacts.length?' · '+esc(c.contacts[0].name):'')+'</div></div>'+
       '<button class="small" data-cnew="'+esc(c.no)+'" type="button">＋ Project</button>'+
       '<button class="x" data-cdel="'+esc(c.no)+'" type="button" aria-label="Delete">×</button></div>';
   }).join(''):'<div class="empty">No clients yet. They appear here as you save projects'+(hasFS?', or read them from the Dropbox Technical folder.':'.')+'</div>';
@@ -943,8 +944,10 @@ $('cQ').addEventListener('input',renderClients);
 $('cList').addEventListener('click',function(e){
   var n=e.target.closest('[data-cnew]'),d=e.target.closest('[data-cdel]');
   if(n){var c=findClientByNo(n.getAttribute('data-cnew')),p=blankProject();p.clientNo=c.no;p.clientName=c.name;p.clientAddr=c.addr||'';
-    if(c.contacts&&c.contacts.length)p.contacts=JSON.parse(JSON.stringify(c.contacts));p.projNo=nextProjNum(c.no);
-    S=p;renderForm();show('form');derived();return}
+    if(c.contacts&&c.contacts.length)p.contacts=JSON.parse(JSON.stringify(c.contacts));
+    var open=function(){if(numbersKnown(c))p.projNo=nextProjNum(c.no);S=p;renderForm();show('form');derived();if(CL)renderTeamBanner()};
+    if(CL&&!numbersKnown(c)){toast('Checking Dropbox for '+c.name+'…');dbxLoadNumbers(c.no).then(open,open)}else open();
+    return}
   if(d){var c2=findClientByNo(d.getAttribute('data-cdel'));if(c2&&confirm('Remove "'+c2.name+'" from the saved client list? Existing projects are not changed.')){DB.clients.splice(DB.clients.indexOf(c2),1);saveDB();renderClients()}}
 });
 $('cExport').onclick=function(){download('JEG client list '+stamp()+'.json',JSON.stringify({clients:DB.clients},null,2),'application/json')};
@@ -1013,8 +1016,8 @@ function applyScan(res){
   var added=0;
   res.clients.forEach(function(s){
     var c=findClientByNo(s.no);
-    if(!c){DB.clients.push({no:s.no,name:s.name,addr:'',contacts:[],known:s.known,width:s.width});added++}
-    else{c.known=s.known;c.width=s.width;c.name=s.name}
+    if(!c){DB.clients.push({no:s.no,name:s.name,addr:'',contacts:[],known:s.known,width:s.width,checked:true});added++}
+    else{c.known=s.known;c.width=s.width;c.name=s.name;c.checked=true}
   });
   DB.scan={proposals:res.proposals||{},at:Date.now()};
   saveDB();return added;
@@ -1330,7 +1333,7 @@ function derived(){
     var cn=P.clientNo.trim(),loading=false;
     if(CL&&/^\d{4}$/.test(cn)&&!DBXC.numbers[cn]){
       DBXC.numbers[cn]='loading';loading=true;
-      dbxLoadNumbers(cn).then(function(){DBXC.numbers[cn]=Date.now();derived()}).catch(function(){DBXC.numbers[cn]=Date.now()});
+      dbxLoadNumbers(cn).then(function(){DBXC.numbers[cn]=Date.now();derived()}).catch(function(){DBXC.numbers[cn]=Date.now();derived()});
     }else if(DBXC.numbers[cn]==='loading')loading=true;
     if(loading)hp='Checking Dropbox for this client\'s project numbers…';
     else if(blind)hp=hasFS?'Next number unknown: your Dropbox has not been read on this device yet. <button type="button" id="scanNow">Read Dropbox</button>'
@@ -1414,9 +1417,11 @@ function fillFromClient(c){
   if(!S.clientNo){S.clientNo=c.no;$('clientNo').value=c.no}
   if(!S.clientAddr.trim()&&c.addr){S.clientAddr=c.addr;$('clientAddr').value=c.addr}
   if(!S.contacts.some(function(x){return x.name||x.email||x.phone})&&c.contacts&&c.contacts.length){S.contacts=JSON.parse(JSON.stringify(c.contacts));renderContacts()}
-  if(!S.projNo)S.projNo=nextProjNum(c.no),$('projNo').value=S.projNo;
+  if(!S.projNo&&numbersKnown(c))S.projNo=nextProjNum(c.no),$('projNo').value=S.projNo;   /* never guess "01" for a client whose numbers haven't been checked */
   toast('Filled in from saved client');
 }
+/* true once this client's existing project numbers are known (read from Dropbox, or from projects already saved) */
+function numbersKnown(c){return !!(c&&(c.checked||(c.known&&c.known.length)||usedProjNums(c.no,S?S.id:null).length))}
 function renderMilesSoon(){}
 function fmtPhone(v){
   if(!/^[\d\s().\-]*$/.test(v))return v;
@@ -1844,7 +1849,7 @@ async function dbxLoadNumbers(no){
   }
   var c=findClientByNo(no);
   if(!c){var nm=dirOfNo(DBXC.tech,no);c={no:no,name:nm?nm.replace(/^\d{4} /,''):'',addr:'',contacts:[],known:[],width:2};if(c.name)DB.clients.push(c);else c=null}
-  if(c){c.known=nums;c.width=width}
+  if(c){c.known=nums;c.width=width;c.checked=true}
   DB.scan=DB.scan||{proposals:{},at:Date.now()};DB.scan.at=Date.now();
   saveDB();
 }
