@@ -88,6 +88,8 @@ button:disabled{opacity:.5;cursor:default}
 .teambar .err,.hint.err{color:var(--danger)}
 .badge.team{background:#e8eef0;color:var(--ink-700)}
 .badge.warn{background:#ffe2c2;color:#8a4b00}
+.badge.overdue{background:#fde0dd;color:#8c1d18}
+.badge.soon{background:#ffe2c2;color:#8a4b00}
 .who{font-size:.78rem;color:#6b8592;margin-top:2px}
 .pc-foot .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .path{font-family:Consolas,Menlo,monospace;font-size:.85rem;background:var(--ink-50);border-radius:6px;padding:8px 10px;word-break:break-all;margin:4px 0}
@@ -95,6 +97,8 @@ button:disabled{opacity:.5;cursor:default}
 .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px;padding-bottom:max(10px,env(safe-area-inset-bottom));z-index:5}
 .bar .wrap{display:flex;gap:8px;flex-wrap:wrap;padding:0}
 .bar .sp{flex:1}
+.bar .more{display:none}
+.bar .menu{position:absolute;bottom:calc(100% + 6px);right:16px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 18px rgba(49,71,79,.25);padding:6px;display:flex;flex-direction:column;gap:6px;min-width:170px}
 .status{font-size:.8rem;color:#6b8592;align-self:center}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .filters select{flex:1;min-width:130px;min-height:38px;padding:6px 8px;font-size:.88rem}
@@ -125,6 +129,13 @@ button:disabled{opacity:.5;cursor:default}
 #printView{display:none}
 .hidden{display:none!important}
 @media (max-width:640px){
+  h1{font-size:1.35rem}
+  main.wrap{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+  #bPrint,#bShare,#bSave,#dBackup,#dRestore{display:none}
+  .bar .more{display:inline-block;font-size:1.3rem;padding:0 14px}
+  .bar .sp{display:none}
+  .bar button{padding:0 11px;font-size:.92rem}
+  .bar .wrap{gap:6px}
   .grid,.grid3{grid-template-columns:1fr}
   .lrow{grid-template-columns:1fr 1fr 1fr}
   .lrow>.c-desc,.lrow>.c-role{grid-column:1/-1}
@@ -176,11 +187,13 @@ button:disabled{opacity:.5;cursor:default}
     <select id="fBy" aria-label="Created by"></select>
     <select id="fClient" aria-label="Client"></select>
     <select id="fSvc" aria-label="Service"></select>
+    <select id="fLead" aria-label="Lead"></select>
     <select id="fSort" aria-label="Sort">
       <option value="updated">Recently updated</option>
       <option value="job">Job number</option>
       <option value="client">Client A–Z</option>
       <option value="created">Newest created</option>
+      <option value="due">Due date, soonest</option>
     </select>
   </div>
   <div class="tabs" id="dashTabs">
@@ -252,7 +265,7 @@ button:disabled{opacity:.5;cursor:default}
       <div class="full"><label for="projDesc">Project description</label><textarea id="projDesc" data-k="projDesc" rows="5" placeholder="Scope, what the client asked for, key dates…"></textarea></div>
       <div class="full"><label>Services on this project <span class="hint" style="font-weight:400">pick every kind of work that applies</span></label>
         <div class="chips" id="svcChips"></div>
-        <div style="position:relative"><input id="svcInput" placeholder="Type to search the list, or type your own and press Enter" autocomplete="off" role="combobox" aria-expanded="false"><div id="svcList" class="dd hidden"></div></div></div>
+        <div style="position:relative"><input id="svcInput" placeholder="Search, or type your own + Enter" autocomplete="off" role="combobox" aria-expanded="false"><div id="svcList" class="dd hidden"></div></div></div>
       <div><label for="lead">Lead / project manager</label><input id="lead" data-k="lead" list="staffList" autocomplete="off"><datalist id="staffList"></datalist></div>
       <div><label for="startDate">Start date</label><input id="startDate" data-k="startDate" type="date"></div>
       <div><label for="dueDate">Target completion</label><input id="dueDate" data-k="dueDate" type="date"></div>
@@ -358,25 +371,29 @@ button:disabled{opacity:.5;cursor:default}
 
 <!-- bars -->
 <div class="bar" id="barDash"><div class="wrap">
-  <button class="primary" id="dNew" type="button">＋ New project</button>
+  <button class="primary" id="dNew" type="button">＋ New</button>
   <button id="dClients" type="button">Clients</button>
   <span class="sp"></span>
-  <button id="dRefresh" type="button" class="hidden">⟳ Refresh</button>
+  <button id="dRefresh" type="button" class="hidden" title="Check the team for changes" aria-label="Refresh">⟳</button>
   <button id="dBackup" type="button">Back up</button>
   <button id="dRestore" type="button">Restore…</button>
+  <button type="button" class="more" id="dMore" data-more="dMenu" aria-label="More">⋯</button>
+  <div class="menu hidden" id="dMenu"><button type="button" data-proxy="dBackup">Back up</button><button type="button" data-proxy="dRestore">Restore…</button></div>
   <input type="file" id="dFile" accept=".json,application/json" class="hidden">
 </div></div>
 <div class="bar hidden" id="barClients"><div class="wrap">
   <button id="cBack" type="button">‹ Dashboard</button>
 </div></div>
 <div class="bar hidden" id="barForm"><div class="wrap">
-  <button id="bBack" type="button">‹ Dashboard</button>
-  <button class="primary" id="bComplete" type="button">Mark complete</button>
+  <button id="bBack" type="button">‹ Back</button>
+  <button class="primary" id="bComplete" type="button">Complete</button>
   <span class="sp"></span>
-  <button id="bUpload" type="button" class="primary hidden">Upload to team</button>
+  <button id="bUpload" type="button" class="primary hidden">Upload</button>
   <button id="bPrint" type="button">Print / PDF</button>
   <button id="bShare" type="button">Share</button>
   <button id="bSave" type="button">Save file</button>
+  <button type="button" class="more" id="bMore" data-more="bMenu" aria-label="More">⋯</button>
+  <div class="menu hidden" id="bMenu"><button type="button" data-proxy="bPrint">Print / PDF</button><button type="button" data-proxy="bShare">Share</button><button type="button" data-proxy="bSave">Save file</button></div>
 </div></div>
 
 <!-- roles dialog -->
@@ -419,6 +436,19 @@ button:disabled{opacity:.5;cursor:default}
   <div class="tabs" style="margin:6px 0 10px"><button type="button" class="on" data-etab="tmpl">Templates</button><button type="button" data-etab="past">Past projects</button></div>
   <div id="estBody"></div>
   <div style="text-align:right;margin-top:12px"><button id="estClose" type="button">Close</button></div>
+</div></div>
+<div class="ov hidden" id="ovClient"><div class="box">
+  <h2 style="margin-bottom:6px" id="ceTitle">Client</h2>
+  <div class="grid">
+    <div><label for="ceName">Client name</label><input id="ceName" autocomplete="off"></div>
+    <div><label for="ceNo">Client JEG number</label><input id="ceNo" disabled></div>
+    <div class="full"><label for="ceAddr">Address</label><textarea id="ceAddr" rows="3"></textarea></div>
+  </div>
+  <label style="margin-top:12px">Contacts</label>
+  <div id="ceContacts"></div>
+  <button class="small" id="ceAddContact" type="button">＋ Add contact</button>
+  <div class="hint">New projects for this client start with these details. Projects that already exist keep their own.</div>
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button id="ceCancel" type="button">Cancel</button><button class="primary" id="ceSave" type="button">Save</button></div>
 </div></div>
 <div class="ov hidden" id="ovProp"><div class="box">
   <h2 style="margin-bottom:6px">Start from a proposal</h2>
@@ -830,14 +860,16 @@ var saveT;
 function persistNow(){
   clearTimeout(saveT);if(!DB)return;
   if(S){
-    if(!isEmpty(S)){if(DB.projects.indexOf(S)<0)DB.projects.push(S);upsertClient(S)}
+    /* only a project that was actually edited updates the saved client, so opening an old project never undoes a client edit */
+    if(!isEmpty(S)){if(DB.projects.indexOf(S)<0)DB.projects.push(S);if(touchedId===S.id)upsertClient(S)}
     var u=S.lead,pb=S.prepBy;
     if(pb)DB.settings.prepBy=pb;
     [u,pb].forEach(function(n){if(n&&STAFF.indexOf(n)<0&&DB.settings.staff.indexOf(n)<0)DB.settings.staff.push(n)});
   }
   saveDB();
 }
-function touch(){if(!S)return;S.updated=Date.now();if(S.remote)S.dirty=true;clearTimeout(saveT);saveT=setTimeout(persistNow,300);derived();if(CL)renderTeamBanner()}
+var touchedId=null;
+function touch(){if(!S)return;touchedId=S.id;S.updated=Date.now();if(S.remote)S.dirty=true;clearTimeout(saveT);saveT=setTimeout(persistNow,300);derived();if(CL)renderTeamBanner()}
 
 /* ---------- views ---------- */
 var view='dash',dashTab='all',dashQ='';
@@ -861,7 +893,7 @@ function dashItems(){
   var items=DB.projects.map(function(p){
     return{id:p.id,p:p,sum:null,jobRef:jobRef(p),name:p.projName,client:p.clientName,status:p.status,fee:p.fee,total:calc(p).total,createdBy:p.createdBy,editedBy:p.editedBy,
       updated:p.updated,state:CL?teamState(p):null,miss:missingList(p).length,folder:!!p.folderDone,
-      services:p.services||[],clientNo:p.clientNo,projNo:p.projNo,createdAt:p.created||0};
+      services:p.services||[],clientNo:p.clientNo,projNo:p.projNo,createdAt:p.created||0,lead:p.lead||'',due:p.dueDate||''};
   });
   if(CL){
     var have={};DB.projects.forEach(function(p){have[p.id]=1});
@@ -869,7 +901,7 @@ function dashItems(){
       if(have[id])return;var s=TIDX.sum[id];
       items.push({id:id,p:null,sum:s,jobRef:s.jobRef,name:s.projName,client:s.clientName,status:s.status,fee:s.fee,total:s.total,createdBy:s.createdBy,
         editedBy:s.editedBy||(s.modifiedBy?{name:s.modifiedBy.name,at:s.modifiedAt}:null),updated:s.updated,state:'teamonly',miss:0,folder:false,
-        services:s.services||[],clientNo:s.clientNo||'',projNo:s.projNo||'',createdAt:s.created||0});
+        services:s.services||[],clientNo:s.clientNo||'',projNo:s.projNo||'',createdAt:s.created||0,lead:s.lead||'',due:s.due||''});
     });
   }
   return items;
@@ -900,10 +932,10 @@ function renderDash(){
   var q=dashQ.toLowerCase().trim();
   var list=items.filter(function(i){
     var okT=dashTab==='all'||(dashTab==='draft'&&i.status!=='complete')||(dashTab==='complete'&&i.status==='complete');
-    var hay=(i.jobRef+' '+i.name+' '+i.client+' '+(i.createdBy?(i.createdBy.name||''):'')).toLowerCase();
+    var hay=(i.jobRef+' '+i.name+' '+i.client+' '+(i.createdBy?(i.createdBy.name||''):'')+' '+(i.lead||'')+' '+(i.services||[]).join(' ')).toLowerCase();
     return okT&&(!q||hay.indexOf(q)>=0);
   });
-  if(!list.length){$('dashList').innerHTML='<div class="empty">'+(all.length?'No projects match.':'No projects yet.<br>Tap <b>＋ New project</b> to start one.')+'</div>';return}
+  if(!list.length){$('dashList').innerHTML='<div class="empty">'+(all.length?'No projects match.':'No projects yet.<br>Tap <b>＋ New</b> to start one.')+'</div>';return}
   $('dashList').innerHTML=list.map(function(i){
     var st=i.state,chip=st?'<span class="badge '+(st==='synced'||st==='teamonly'?'team':'warn')+'">'+esc(STATE_TXT[st]||'')+'</span>':'';
     var acts='';
@@ -916,7 +948,7 @@ function renderDash(){
     acts+='<button type="button" data-del="'+i.id+'" title="Delete" style="color:var(--danger)">🗑</button>';
     return '<div class="pcard" '+(i.p?'data-open':'data-opent')+'="'+i.id+'"><div class="pc-top"><b>'+esc(i.jobRef)+'</b><span>'+
       '<span class="badge fee">'+(i.fee==='fixed'?'Fixed fee':'T&amp;M')+'</span>'+
-      '<span class="badge '+(i.status==='complete'?'complete':'draft')+'">'+(i.status==='complete'?'Complete':'Draft')+'</span>'+chip+'</span></div>'+
+      '<span class="badge '+(i.status==='complete'?'complete':'draft')+'">'+(i.status==='complete'?'Complete':'Draft')+'</span>'+dueBadge(i)+chip+'</span></div>'+
       '<div class="pc-name">'+esc(i.name||'Untitled project')+'</div>'+
       '<div class="pc-sub">'+esc(i.client||'No client yet')+(i.total>0?' · '+money(i.total):'')+'</div>'+whoLine(i)+
       '<div class="pc-foot"><span>Updated '+fmtDate(i.updated)+(i.status!=='complete'&&i.miss?' · '+i.miss+' item'+(i.miss>1?'s':'')+' missing':'')+(i.folder?' · folder created':'')+'</span>'+
@@ -987,7 +1019,7 @@ function renderClients(){
   $('cList').innerHTML=list.length?list.map(function(c){
     var n=usedProjNums(c.no,null).length;
     var kn=numbersKnown(c)?n+' project number'+(n===1?'':'s')+' known':'project numbers not checked yet';
-    return '<div class="crow"><span class="no">'+esc(c.no)+'</span><div class="nm"><b>'+esc(c.name)+'</b><div class="hint" style="margin:0">'+kn+(c.contacts&&c.contacts.length?' · '+esc(c.contacts[0].name):'')+'</div></div>'+
+    return '<div class="crow"><span class="no">'+esc(c.no)+'</span><div class="nm" data-cedit="'+esc(c.no)+'" style="cursor:pointer" title="Edit this client"><b>'+esc(c.name)+'</b><div class="hint" style="margin:0">'+kn+(c.contacts&&c.contacts.length?' · '+esc(c.contacts[0].name):'')+'</div></div>'+
       '<button class="small" data-cnew="'+esc(c.no)+'" type="button">＋ Project</button>'+
       '<button class="x" data-cdel="'+esc(c.no)+'" type="button" aria-label="Delete">×</button></div>';
   }).join(''):'<div class="empty">No clients yet. They appear here as you save projects'+(hasFS?', or read them from the Dropbox Technical folder.':'.')+'</div>';
@@ -998,7 +1030,8 @@ function renderClients(){
 }
 $('cQ').addEventListener('input',renderClients);
 $('cList').addEventListener('click',function(e){
-  var n=e.target.closest('[data-cnew]'),d=e.target.closest('[data-cdel]');
+  var n=e.target.closest('[data-cnew]'),d=e.target.closest('[data-cdel]'),ed=e.target.closest('[data-cedit]');
+  if(ed){openClientEditor(ed.getAttribute('data-cedit'));return}
   if(n){var c=findClientByNo(n.getAttribute('data-cnew')),p=blankProject();p.clientNo=c.no;p.clientName=c.name;p.clientAddr=c.addr||'';
     if(c.contacts&&c.contacts.length)p.contacts=JSON.parse(JSON.stringify(c.contacts));
     var open=function(){if(numbersKnown(c))p.projNo=nextProjNum(c.no);S=p;renderForm();show('form');derived();if(CL)renderTeamBanner()};
@@ -1211,7 +1244,7 @@ function renderForm(){
   $('clientList').innerHTML=DB.clients.map(function(c){return '<option value="'+esc(c.name)+'">'+esc(c.no)+'</option>'}).join('');
   renderContacts();renderLabor();renderCosts();renderMiles();renderSvc();renderAreas();renderFee();
   $('billBox').classList.toggle('hidden',!!S.billSame);
-  $('bComplete').textContent=S.status==='complete'?'Reopen as draft':'Mark complete';
+  $('bComplete').textContent=S.status==='complete'?'Reopen':'Complete';
   Array.prototype.forEach.call(document.querySelectorAll('input[data-email]'),function(i){i.classList.remove('bad')});
 }
 function renderContacts(){
@@ -1338,7 +1371,8 @@ function renderAreas(){
   $('areas').innerHTML=h;updatePaths();
 }
 function updatePaths(){
-  plan(S).forEach(function(x){var el=document.querySelector('[data-path="'+x.k+'"]');if(el)el.textContent=x.path});
+  /* a break is allowed after each backslash so a path never splits inside a number */
+  plan(S).forEach(function(x){var el=document.querySelector('[data-path="'+x.k+'"]');if(el)el.innerHTML=esc(x.path).split('\\').join('\\<wbr>')});
 }
 function setAutoSubs(){
   ['tech','draft'].forEach(function(k){if(S.subAuto[k])S.subs[k]=autoSubs(S,k)});
@@ -1575,9 +1609,13 @@ $('roleDone').onclick=function(){
 $('bComplete').onclick=function(){
   if(S.status==='complete'){S.status='draft'}
   else{var m=missingList(S);if(m.length&&!confirm('Still missing: '+m.join(', ')+'.\n\nMark complete anyway?'))return;S.status='complete'}
-  $('bComplete').textContent=S.status==='complete'?'Reopen as draft':'Mark complete';
+  $('bComplete').textContent=S.status==='complete'?'Reopen':'Complete';
   touch();persistNow();
   toast(S.status==='complete'?'Marked complete. Find it under Complete on the dashboard.':'Back to draft.');
+  /* the summary page belongs in the project folder once the project is signed off */
+  if(CL&&S.status==='complete'&&S.folderDone&&!S.summarySavedAt){
+    setTimeout(function(){if(confirm('Save the project summary into its Dropbox folder now?'))saveSummaryToDropbox()},250);
+  }
 };
 function fname(){return 'Project Kickoff - '+cleanName((S.clientNo&&S.projNo?S.clientNo+'-'+S.projNo+' ':'')+(S.projName||'New Project'))}
 $('bSave').onclick=function(){persistNow();download(fname()+'.json',JSON.stringify(S,null,2),'application/json')};
@@ -1655,15 +1693,16 @@ document.addEventListener('visibilitychange',function(){if(document.hidden)persi
 /* Pasted into Project_Kickoff_Form.html by _tools/build-kickoff.js (between the FEATURES markers). Runs inside the app's main closure. */
 
 /* ===== dashboard filters and sorting ===== */
-var dashF={by:'',client:'',svc:'',sort:'updated'};
+var dashF={by:'',client:'',svc:'',lead:'',sort:'updated'};
 try{Object.assign(dashF,JSON.parse(localStorage.getItem('kickoff.dashf')||'{}'))}catch(e){}
 function saveDashF(){try{localStorage.setItem('kickoff.dashf',JSON.stringify(dashF))}catch(e){}}
 function creatorName(i){return i.createdBy?(i.createdBy.name||i.createdBy.email||''):''}
 function clientKey(i){return i.client?(i.clientNo?i.clientNo+' '+i.client:i.client):''}
 function fillDashFilters(items){
-  var names={},clients={},svcs={};
+  var names={},clients={},svcs={},leads={};
   items.forEach(function(i){
     var n=creatorName(i);if(n)names[n]=1;
+    if(i.lead)leads[i.lead]=1;
     var k=clientKey(i);if(k)clients[k]=1;
     (i.services||[]).forEach(function(s){svcs[s]=1});
   });
@@ -1675,6 +1714,8 @@ function fillDashFilters(items){
   if(dashF.client&&!clients[dashF.client])dashF.client='';
   if(dashF.svc&&!svcs[dashF.svc])dashF.svc='';
   if(dashF.by&&dashF.by!=='@me'&&!names[dashF.by])dashF.by='';
+  if(dashF.lead&&!leads[dashF.lead])dashF.lead='';
+  sel('fLead','Any lead',Object.keys(leads).sort(),dashF.lead);
   sel('fClient','Any client',cl,dashF.client);
   sel('fSvc','Any service',sv,dashF.svc);
   sel('fBy','Anyone',nm.filter(function(n){return !ACCT||n!==ACCT.name}),dashF.by,ACCT?'<option value="@me"'+(dashF.by==='@me'?' selected':'')+'>Created by me</option>':'');
@@ -1690,7 +1731,18 @@ function dashPass(i){
   }
   if(dashF.client&&clientKey(i)!==dashF.client)return false;
   if(dashF.svc&&(i.services||[]).indexOf(dashF.svc)<0)return false;
+  if(dashF.lead&&i.lead!==dashF.lead)return false;
   return true;
+}
+function fmtShort(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+/* a coloured chip for the target completion date; nothing once the project is complete */
+function dueBadge(i){
+  if(!i.due||i.status==='complete')return '';
+  var d=new Date(i.due+'T00:00:00');if(isNaN(d))return '';
+  var days=Math.round((d-new Date(new Date().toDateString()))/864e5);
+  if(days<0)return '<span class="badge overdue">Overdue '+(-days)+'d</span>';
+  if(days<=7)return '<span class="badge soon">Due '+(days===0?'today':'in '+days+'d')+'</span>';
+  return '<span class="badge fee">Due '+fmtShort(d)+'</span>';
 }
 function dashSort(items){
   var k=dashF.sort;
@@ -1701,13 +1753,13 @@ function dashSort(items){
     }
     if(k==='client')return (a.client||'').localeCompare(b.client||'')||((parseInt(a.projNo,10)||0)-(parseInt(b.projNo,10)||0));
     if(k==='created')return (b.createdAt||0)-(a.createdAt||0);
+    if(k==='due'){var ad=a.due||'9999',bd=b.due||'9999';return ad<bd?-1:ad>bd?1:0}
     return b.updated-a.updated;
   });
 }
-['fBy','fClient','fSvc','fSort'].forEach(function(id){
-  $(id).addEventListener('change',function(){
-    dashF[id==='fBy'?'by':id==='fClient'?'client':id==='fSvc'?'svc':'sort']=this.value;saveDashF();renderDash();
-  });
+var DASH_KEY={fBy:'by',fClient:'client',fSvc:'svc',fLead:'lead',fSort:'sort'};
+Object.keys(DASH_KEY).forEach(function(id){
+  $(id).addEventListener('change',function(){dashF[DASH_KEY[id]]=this.value;saveDashF();renderDash()});
 });
 
 /* ===== estimates: templates and copy from a past project ===== */
@@ -1896,6 +1948,54 @@ function featureUI(){
   $('sumHint').textContent=CL?note:'';
 }
 
+/* ===== "More ..." menus in the bottom bars (phones show fewer buttons) ===== */
+document.addEventListener('click',function(e){
+  var menus=document.querySelectorAll('.bar .menu');
+  function hideAll(){Array.prototype.forEach.call(menus,function(x){x.classList.add('hidden')})}
+  var m=e.target.closest('[data-more]');
+  if(m){var mn=$(m.getAttribute('data-more')),open=mn.classList.contains('hidden');hideAll();if(open)mn.classList.remove('hidden');return}
+  var p=e.target.closest('[data-proxy]');
+  if(p){hideAll();var t=$(p.getAttribute('data-proxy'));if(t)t.click();return}
+  hideAll();
+});
+
+/* ===== edit a client's saved details (Clients page: tap the name) ===== */
+var ceNo=null,ceContacts=[];
+function openClientEditor(no){
+  var c=findClientByNo(no);if(!c)return;
+  ceNo=no;$('ceTitle').textContent=c.no+' '+c.name;
+  $('ceName').value=c.name;$('ceNo').value=c.no;$('ceAddr').value=c.addr||'';
+  ceContacts=(c.contacts&&c.contacts.length)?JSON.parse(JSON.stringify(c.contacts)):[blankContact()];
+  renderCeContacts();$('ovClient').classList.remove('hidden');
+}
+function renderCeContacts(){
+  $('ceContacts').innerHTML=ceContacts.map(function(x,i){
+    return '<div class="contact" data-ci="'+i+'">'+(ceContacts.length>1?'<button class="x rm" type="button" data-cerm="'+i+'" aria-label="Remove contact">×</button>':'')+
+    '<div class="grid"><div><label>Name</label><input data-cc="name" value="'+esc(x.name)+'"></div><div><label>Title / role</label><input data-cc="title" value="'+esc(x.title)+'"></div>'+
+    '<div><label>Email</label><input data-cc="email" type="email" inputmode="email" value="'+esc(x.email)+'"></div><div><label>Phone</label><input data-cc="phone" type="tel" inputmode="tel" value="'+esc(x.phone)+'"></div></div></div>';
+  }).join('');
+}
+$('ceContacts').addEventListener('input',function(e){
+  var f=e.target.getAttribute('data-cc'),row=e.target.closest('[data-ci]');if(!f||!row)return;
+  var v=e.target.value;if(f==='phone'){v=fmtPhone(v);e.target.value=v}
+  ceContacts[+row.getAttribute('data-ci')][f]=v;
+});
+$('ceContacts').addEventListener('click',function(e){
+  var b=e.target.closest('[data-cerm]');if(!b)return;
+  ceContacts.splice(+b.getAttribute('data-cerm'),1);renderCeContacts();
+});
+$('ceAddContact').onclick=function(){ceContacts.push(blankContact());renderCeContacts()};
+$('ceCancel').onclick=function(){$('ovClient').classList.add('hidden')};
+$('ceSave').onclick=function(){
+  var c=findClientByNo(ceNo);if(!c)return;
+  var name=$('ceName').value.trim();if(!name){$('ceName').focus();return}
+  c.name=name;c.addr=$('ceAddr').value;
+  c.contacts=ceContacts.filter(function(x){return x.name||x.title||x.email||x.phone});
+  c.updated=Date.now();saveDB();
+  if(CL)syncClientsUp().catch(function(){});
+  $('ovClient').classList.add('hidden');renderClients();toast('Saved '+c.no+' '+c.name+'.');
+};
+
 /* ==FEATURES-END== */
 /* ==SHELL-TEAM-BEGIN== */
 /* ---------- team mode (Dropbox sign-in + shared projects) ---------- */
@@ -1950,7 +2050,7 @@ document.addEventListener('click',function(e){
 /* ----- what the team has ----- */
 function summarize(p,meta){
   var c=calc(p);
-  return{v:2,id:p.id,eTag:meta.eTag,jobRef:jobRef(p),projName:p.projName,clientName:p.clientName,clientNo:p.clientNo,projNo:p.projNo,services:p.services||[],created:p.created||0,fee:p.fee,total:c.total,status:p.status,
+  return{v:3,lead:p.lead||'',due:p.dueDate||'',id:p.id,eTag:meta.eTag,jobRef:jobRef(p),projName:p.projName,clientName:p.clientName,clientNo:p.clientNo,projNo:p.projNo,services:p.services||[],created:p.created||0,fee:p.fee,total:c.total,status:p.status,
     createdBy:p.createdBy||null,editedBy:p.editedBy||null,updated:p.updated||meta.modifiedAt,modifiedBy:meta.modifiedBy,modifiedAt:meta.modifiedAt};
 }
 async function refreshTeam(force){
@@ -1960,7 +2060,7 @@ async function refreshTeam(force){
   try{
     var list=await CL.listProjects();
     TIDX.list=list;
-    var need=list.filter(function(m){var s=TIDX.sum[m.id];return !s||s.eTag!==m.eTag||s.v!==2});
+    var need=list.filter(function(m){var s=TIDX.sum[m.id];return !s||s.eTag!==m.eTag||s.v!==3});
     var i=0;
     async function worker(){
       while(i<need.length){
@@ -2247,7 +2347,7 @@ function renderTeamBanner(){
   if(st==='both')h+=' <button class="small" type="button" data-tres="1">Resolve…</button>';
   b.innerHTML=h;b.classList.remove('hidden');
   $('bUpload').classList.toggle('hidden',false);
-  $('bUpload').textContent=st==='newer'?'Get latest':st==='both'?'Resolve…':'Upload to team';
+  $('bUpload').textContent=st==='newer'?'Get latest':st==='both'?'Resolve…':'Upload';
 }
 $('tBanner').addEventListener('click',function(e){var b=e.target.closest('button');if(!b||!S)return;
   if(b.hasAttribute('data-tup'))syncUp(S);else if(b.hasAttribute('data-tdown'))syncDown(S);else if(b.hasAttribute('data-tres'))resolveConflict(S)});
