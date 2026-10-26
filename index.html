@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#36BAF2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="New Project">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>New Project Kickoff</title>
+<style>
+:root{
+  --brand:#36BAF2; --brand-700:#1f8bc2; --brand-50:#eaf7fd; --brand-100:#cdedfb;
+  --ink:#426170; --ink-700:#31474f; --ink-50:#eef2f3; --line:#d5dee2; --danger:#b3261e; --ok:#2e7d32; --warn:#9a6a00;
+  --font-display:"Proletarsk","Century Gothic","Futura","Segoe UI Semibold",sans-serif;
+  --font-heading:"Century Gothic","Futura","Segoe UI Semibold","Trebuchet MS",sans-serif;
+  --font-body:Arial,"Segoe UI",Helvetica,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font-body);color:var(--ink);background:#f6f9fa;font-size:16px}
+header{background:#fff;border-bottom:3px solid var(--brand);padding:14px 16px;padding-top:max(14px,env(safe-area-inset-top))}
+.wrap{max-width:900px;margin:0 auto;padding:0 16px}
+header .wrap{padding:0;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--font-display);color:var(--brand);margin:0;font-size:1.7rem;letter-spacing:.01em}
+.eyebrow{font-family:var(--font-heading);font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink)}
+main{padding:16px 0 110px}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 1px 3px rgba(66,97,112,.12);padding:16px;margin-bottom:16px}
+h2{font-family:var(--font-heading);font-size:1.1rem;margin:0 0 12px;color:var(--ink);display:flex;align-items:center;gap:8px}
+h2 .num{background:var(--brand);color:#fff;border-radius:50%;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-size:.85rem;flex:none}
+h3{margin:14px 0 6px;font-size:.95rem;font-family:var(--font-heading);color:var(--ink-700)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid .full{grid-column:1/-1}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+label{display:block;font-size:.8rem;font-weight:700;margin-bottom:4px;font-family:var(--font-heading)}
+input,textarea,select{width:100%;font:inherit;color:#1d2b31;padding:10px;border:1px solid var(--line);border-radius:6px;background:#fff;min-height:44px}
+input[type=checkbox]{width:auto;min-height:0}
+textarea{min-height:90px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+input.bad{border-color:var(--danger);background:#fff6f5}
+.hint{font-size:.78rem;color:#6b8592;margin-top:4px}
+.hint.warn{color:var(--warn);font-weight:700}
+.hint.err{color:var(--danger);font-weight:700}
+.hint.ok{color:var(--ok)}
+.hint button{min-height:28px;padding:0 10px;font-size:.78rem;margin-left:6px}
+button{font:inherit;font-family:var(--font-heading);font-weight:700;cursor:pointer;border-radius:6px;min-height:44px;padding:0 16px;border:1px solid var(--line);background:#fff;color:var(--ink)}
+button:hover{background:var(--ink-50)}
+button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button.primary:hover{background:var(--brand-700)}
+button.small{min-height:36px;padding:0 12px;font-size:.85rem}
+button.x{min-height:36px;width:36px;padding:0;color:var(--danger);font-size:1.2rem;line-height:1}
+button:disabled{opacity:.5;cursor:default}
+.contact{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;background:#fbfdfd;position:relative}
+.contact .rm{position:absolute;top:6px;right:6px}
+.contact h3{margin:0 0 8px;font-size:.8rem}
+.m{position:relative;display:block}
+.m:before{content:"$";position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#6b8592;pointer-events:none}
+.m input{padding-left:22px;text-align:right}
+.seg{display:inline-flex;border:2px solid var(--brand);border-radius:999px;overflow:hidden;width:100%;max-width:420px}
+.seg button{flex:1;border:none;border-radius:0;background:#fff;color:var(--ink);min-height:48px}
+.seg button.on{background:var(--brand);color:#fff}
+.seg button+button{border-left:2px solid var(--brand)}
+.lrow{display:grid;grid-template-columns:2.2fr 1.4fr .8fr 1fr 1.1fr 36px;gap:6px;align-items:end;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--line)}
+.lrow.cost{grid-template-columns:1.2fr 2fr 1.1fr .8fr 1.1fr 36px}
+.lrow.ms{grid-template-columns:3fr 1fr 1.2fr 36px}
+.lrow label{font-size:.68rem;margin-bottom:2px}
+.lrow input,.lrow select{min-height:40px;padding:8px}
+.lrow .calc{padding:10px 8px;text-align:right;font-weight:700;color:var(--ink-700);min-height:40px}
+.sumline{display:flex;justify-content:space-between;font-size:.92rem;padding:3px 0}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--brand);margin-top:10px;padding-top:10px;font-family:var(--font-heading);font-weight:700}
+.total .amt{font-size:1.5rem;color:var(--brand-700)}
+.internal{background:var(--brand-50);border:1px dashed var(--brand);border-radius:8px;padding:10px 12px;margin-top:14px;font-size:.88rem}
+.internal b{font-family:var(--font-heading)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.85rem;background:#fff;cursor:pointer;margin:0;font-weight:400;font-family:var(--font-body)}
+.chip.on{background:var(--brand-50);border-color:var(--brand);color:var(--ink-700);font-weight:700}
+.chip input{display:none}
+.dd{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 18px rgba(49,71,79,.2);max-height:280px;overflow:auto;z-index:15}
+.dd .g{font-family:var(--font-heading);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#6b8592;padding:8px 12px 2px}
+.dd .it{padding:10px 12px;cursor:pointer;font-size:.95rem}
+.dd .it.on,.dd .it:hover{background:var(--brand-50)}
+.dd .it.new{border-top:1px solid var(--line);color:var(--brand-700);font-weight:700}
+.dd .none{padding:10px 12px;color:#6b8592;font-size:.9rem}
+.teambar{background:var(--brand-50);border:1px solid var(--brand-100);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:.85rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.teambar .err,.hint.err{color:var(--danger)}
+.badge.team{background:#e8eef0;color:var(--ink-700)}
+.badge.warn{background:#ffe2c2;color:#8a4b00}
+.who{font-size:.78rem;color:#6b8592;margin-top:2px}
+.pc-foot .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.path{font-family:Consolas,Menlo,monospace;font-size:.85rem;background:var(--ink-50);border-radius:6px;padding:8px 10px;word-break:break-all;margin:4px 0}
+.banner{background:#fff8e1;border:1px solid #f0d78c;color:#7a5a00;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:.88rem}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px;padding-bottom:max(10px,env(safe-area-inset-bottom));z-index:5}
+.bar .wrap{display:flex;gap:8px;flex-wrap:wrap;padding:0}
+.bar .sp{flex:1}
+.status{font-size:.8rem;color:#6b8592;align-self:center}
+.tabs{display:flex;gap:6px;margin:12px 0}
+.tabs button{border-radius:999px;min-height:38px}
+.tabs button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:10px;cursor:pointer;box-shadow:0 1px 2px rgba(66,97,112,.1)}
+.pcard:hover{border-color:var(--brand)}
+.pc-top{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.pc-top b{font-family:var(--font-heading);color:var(--brand-700);font-size:1rem}
+.pc-name{font-weight:700;margin:2px 0;color:var(--ink-700)}
+.pc-sub{font-size:.85rem}
+.pc-foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:.78rem;color:#6b8592}
+.pc-foot button{min-height:32px;padding:0 10px}
+.badge{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.72rem;font-family:var(--font-heading);font-weight:700;margin-left:4px}
+.badge.draft{background:#fff3cd;color:#7a5a00}
+.badge.complete{background:#d8f0da;color:#1b5e20}
+.badge.fee{background:var(--brand-50);color:var(--brand-700)}
+.empty{text-align:center;padding:40px 10px;color:#6b8592}
+.crow{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding:8px 0}
+.crow .nm{flex:1;min-width:0}
+.crow .nm b{color:var(--ink-700)}
+.crow .no{font-family:var(--font-heading);color:var(--brand-700);font-weight:700;width:52px;flex:none}
+.ov{position:fixed;inset:0;background:rgba(30,45,52,.5);z-index:20;display:flex;align-items:center;justify-content:center;padding:16px}
+.ov .box{background:#fff;border-radius:10px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:16px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:var(--ink-700);color:#fff;padding:10px 16px;border-radius:8px;z-index:30;font-size:.9rem;max-width:90%;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+#printView{display:none}
+.hidden{display:none!important}
+@media (max-width:640px){
+  .grid,.grid3{grid-template-columns:1fr}
+  .lrow{grid-template-columns:1fr 1fr 1fr}
+  .lrow>.c-desc,.lrow>.c-role{grid-column:1/-1}
+  .lrow .c-x{grid-column:3;justify-self:end}
+  .lrow.cost{grid-template-columns:1fr 1fr 1fr}
+  .lrow.cost>.c-desc{grid-column:1/-1}
+  .lrow.ms{grid-template-columns:1fr 1fr 36px}
+  .lrow.ms>.c-desc{grid-column:1/-1}
+  .lrow.ms .c-x{grid-column:3}
+}
+@media print{
+  body{background:#fff}
+  header,main,.bar,.ov,#toast{display:none!important}
+  #printView{display:block}
+  #printView .ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid var(--brand);padding-bottom:8px}
+  #printView .ph img{height:46px}
+  #printView h1{font-size:1.5rem;margin:0}
+  #printView h2{font-size:1rem;border-bottom:1px solid var(--line);padding-bottom:3px;margin:16px 0 6px;display:block}
+  #printView table{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:6px}
+  #printView th,#printView td{border-bottom:1px solid var(--line);padding:4px;text-align:left}
+  #printView td.r,#printView th.r{text-align:right}
+  #printView .kv{display:grid;grid-template-columns:150px 1fr;gap:3px 10px;font-size:.9rem}
+  #printView .kv b{font-family:var(--font-heading)}
+  #printView pre{white-space:pre-wrap;font:inherit;margin:0}
+  #printView .big{font-size:1.2rem;font-weight:700;color:var(--brand-700)}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Johnson Engineering Group</div>
+      <h1 id="ttl">Project Kickoff</h1>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="status" id="acct"></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ DASHBOARD ============ -->
+<div id="vDash" class="view">
+  <div class="banner hidden" id="movedBar"></div>
+  <div class="teambar hidden" id="teamBar"></div>
+  <input id="dashQ" type="search" placeholder="Search by job number, project or client…">
+  <div class="tabs" id="dashTabs">
+    <button type="button" data-tab="all" class="on">All</button>
+    <button type="button" data-tab="draft">Drafts</button>
+    <button type="button" data-tab="complete">Complete</button>
+  </div>
+  <div id="dashList"></div>
+</div>
+
+<!-- ============ CLIENTS ============ -->
+<div id="vClients" class="view hidden">
+  <div class="card">
+    <h2>Clients</h2>
+    <div class="hint" style="margin:0 0 10px">Clients are remembered from your projects, so picking one fills in its number, address and contacts. On a computer you can also read the client list and numbers straight from the Dropbox <b>Technical</b> folder.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="small" id="cScan" type="button">Read Dropbox Technical folder</button>
+      <button class="small" id="cExport" type="button">Export client list</button>
+      <button class="small" id="cImport" type="button">Import client list</button>
+      <input type="file" id="cFile" accept=".json,application/json" class="hidden">
+    </div>
+    <div class="hint" id="cScanHint"></div>
+    <input id="cQ" type="search" placeholder="Search clients…" style="margin:10px 0">
+    <div id="cList"></div>
+  </div>
+</div>
+
+<!-- ============ FORM ============ -->
+<div id="vForm" class="view hidden">
+  <div class="banner hidden" id="tBanner" style="background:#eaf7fd;border-color:#9fd8f2;color:#31474f"></div>
+  <div class="banner hidden" id="missing"></div>
+
+  <section class="card">
+    <h2><span class="num">1</span> Client</h2>
+    <div class="grid">
+      <div><label for="clientName">Client name</label><input id="clientName" data-k="clientName" list="clientList" autocomplete="off">
+        <datalist id="clientList"></datalist></div>
+      <div><label for="clientNo">Client JEG number</label><input id="clientNo" data-k="clientNo" autocomplete="off" inputmode="numeric" placeholder="e.g. 0084"></div>
+      <div class="full hint" id="hClient" style="margin-top:-6px"></div>
+      <div class="full"><label for="clientAddr">Client address</label><textarea id="clientAddr" data-k="clientAddr" rows="3" placeholder="Street&#10;City, State ZIP"></textarea></div>
+    </div>
+    <div style="margin-top:14px">
+      <label>Main contact(s)</label>
+      <div id="contacts"></div>
+      <button class="small" id="addContact" type="button">＋ Add contact</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">2</span> Project</h2>
+    <div class="grid">
+      <div><label for="projName">Project name</label><input id="projName" data-k="projName" autocomplete="off"></div>
+      <div><label for="projNo">Project JEG number</label><input id="projNo" data-k="projNo" autocomplete="off" inputmode="numeric" placeholder="e.g. 103">
+        <div class="hint" id="hProj"></div></div>
+      <div class="full hint" id="hJob" style="margin-top:-6px"></div>
+      <div class="full">
+        <label for="projAddr">Project address</label>
+        <textarea id="projAddr" data-k="projAddr" rows="3" placeholder="Street&#10;City, State ZIP"></textarea>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+          <button class="small" id="sameAddr" type="button">Same as client address</button>
+          <button class="small" id="mapBtn" type="button">Open in Maps</button>
+        </div>
+      </div>
+      <div class="full"><label for="projDesc">Project description</label><textarea id="projDesc" data-k="projDesc" rows="5" placeholder="Scope, what the client asked for, key dates…"></textarea></div>
+      <div class="full"><label>Services on this project <span class="hint" style="font-weight:400">pick every kind of work that applies</span></label>
+        <div class="chips" id="svcChips"></div>
+        <div style="position:relative"><input id="svcInput" placeholder="Type to search the list, or type your own and press Enter" autocomplete="off" role="combobox" aria-expanded="false"><div id="svcList" class="dd hidden"></div></div></div>
+      <div><label for="lead">Lead / project manager</label><input id="lead" data-k="lead" list="staffList" autocomplete="off"><datalist id="staffList"></datalist></div>
+      <div><label for="startDate">Start date</label><input id="startDate" data-k="startDate" type="date"></div>
+      <div><label for="dueDate">Target completion</label><input id="dueDate" data-k="dueDate" type="date"></div>
+      <div><label for="propStatus">Proposal / contract</label>
+        <select id="propStatus" data-k="propStatus"><option value="">—</option><option>Verbal go-ahead</option><option>Proposal sent</option><option>Signed</option><option>Not needed</option></select></div>
+      <div><label for="poNo">PO / contract number</label><input id="poNo" data-k="poNo" autocomplete="off"></div>
+      <div class="full"><label for="prepBy">Prepared by</label><input id="prepBy" data-k="prepBy" list="staffList" autocomplete="off"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">3</span> Project folder</h2>
+    <div class="hint" style="margin:0 0 8px">Dropbox keeps each project in several places: <b>Technical</b> (documents), <b>Drafting</b> (CAD / Revit), <b>Data Files</b> (survey data) and <b>Proposals</b> (numbered by year). Tick the ones this project needs. Subfolders follow the services you picked.</div>
+    <div id="areas"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="primary" id="fCreate" type="button">Create folders in Dropbox</button>
+      <button id="fCopy" type="button">Copy folder name</button>
+      <button id="fCopyPath" type="button">Copy paths</button>
+    </div>
+    <div class="hint" id="fHint"></div>
+    <div class="hint" id="fRoot"></div>
+    <h3>Number register</h3>
+    <div class="hint" style="margin:0 0 6px">The master list is <b>Corporate\Finance\Client &amp; Project Numbers.xlsx</b>. Copy the line and paste it into the next free row (number, then name).</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="small" id="rCopyProj" type="button">Copy project line</button>
+      <button class="small" id="rCopyClient" type="button">Copy client line</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">4</span> Billing</h2>
+    <label class="chip on" id="billChip" style="display:inline-flex"><input type="checkbox" id="billSame" data-k="billSame"><span>Invoice the main contact at the client address</span></label>
+    <div class="grid hidden" id="billBox" style="margin-top:10px">
+      <div><label for="billName">Billing contact</label><input id="billName" data-k="billName"></div>
+      <div><label for="billEmail">Billing email</label><input id="billEmail" data-k="billEmail" type="email" inputmode="email" data-email="1"></div>
+      <div class="full"><label for="billAddr">Billing address</label><textarea id="billAddr" data-k="billAddr" rows="3"></textarea></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">5</span> Budget</h2>
+    <div class="seg" id="feeSeg" role="group" aria-label="Fee type">
+      <button type="button" data-fee="fixed">Fixed fee</button>
+      <button type="button" data-fee="tm">Time &amp; material</button>
+    </div>
+    <div class="hint" id="feeHint"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">6</span> Estimate</h2>
+
+    <div id="fixedBox">
+      <label for="fixedFee">Fixed fee ($)</label>
+      <div class="m" style="max-width:240px"><input id="fixedFee" data-k="fixedFee" class="money" inputmode="decimal" placeholder="0.00"></div>
+      <div class="hint" id="fixedHint">Leave blank to use the calculated estimate below.</div>
+    </div>
+    <div id="tmBox" class="hidden">
+      <label for="nte">Not-to-exceed ($, optional)</label>
+      <div class="m" style="max-width:240px"><input id="nte" data-k="nte" class="money" inputmode="decimal" placeholder="0.00"></div>
+    </div>
+
+    <h3 style="display:flex;justify-content:space-between;align-items:center">Labor <button class="small" id="rolesBtn" type="button">Roles &amp; rates</button></h3>
+    <div id="labor"></div>
+    <button class="small" id="addLabor" type="button">＋ Add labor line</button>
+
+    <h3>Other costs <span class="hint" style="font-weight:400">expenses, travel, subconsultants</span></h3>
+    <div id="costs"></div>
+    <button class="small" id="addCost" type="button">＋ Add cost</button>
+
+    <div class="grid" style="margin-top:14px">
+      <div><label for="contPct">Contingency (%)</label><input id="contPct" data-k="contPct" inputmode="decimal" placeholder="0"></div>
+    </div>
+
+    <div style="margin-top:14px">
+      <div class="sumline"><span>Labor (<span id="sumHours">0</span> hrs)</span><span id="sumLab">$0.00</span></div>
+      <div class="sumline"><span>Other costs (incl. markup)</span><span id="sumOC">$0.00</span></div>
+      <div class="sumline"><span>Contingency</span><span id="sumCont">$0.00</span></div>
+      <div class="sumline"><b>Calculated estimate</b><b id="sumEst">$0.00</b></div>
+    </div>
+    <div class="total"><span id="totalLabel">Estimate</span><span class="amt" id="totalAmt">$0.00</span></div>
+    <div class="hint" id="totalHint"></div>
+
+    <div id="msBox">
+      <h3>Billing milestones <span class="hint" style="font-weight:400">share of the fixed fee invoiced at each stage</span></h3>
+      <div id="miles"></div>
+      <button class="small" id="addMs" type="button">＋ Add milestone</button>
+      <div class="hint" id="msHint"></div>
+    </div>
+
+    <div class="internal" id="internal"><b>Internal check</b> <span class="hint">(screen only, not on the printout)</span><div id="internalTxt"></div></div>
+
+    <div style="margin-top:14px">
+      <label for="estNotes">Estimate notes / assumptions</label>
+      <textarea id="estNotes" data-k="estNotes" rows="3" placeholder="Exclusions, reimbursables, assumptions…"></textarea>
+    </div>
+  </section>
+</div>
+
+</main>
+
+<!-- bars -->
+<div class="bar" id="barDash"><div class="wrap">
+  <button class="primary" id="dNew" type="button">＋ New project</button>
+  <button id="dClients" type="button">Clients</button>
+  <span class="sp"></span>
+  <button id="dRefresh" type="button" class="hidden">⟳ Refresh</button>
+  <button id="dBackup" type="button">Back up</button>
+  <button id="dRestore" type="button">Restore…</button>
+  <input type="file" id="dFile" accept=".json,application/json" class="hidden">
+</div></div>
+<div class="bar hidden" id="barClients"><div class="wrap">
+  <button id="cBack" type="button">‹ Dashboard</button>
+</div></div>
+<div class="bar hidden" id="barForm"><div class="wrap">
+  <button id="bBack" type="button">‹ Dashboard</button>
+  <button class="primary" id="bComplete" type="button">Mark complete</button>
+  <span class="sp"></span>
+  <button id="bUpload" type="button" class="primary hidden">Upload to team</button>
+  <button id="bPrint" type="button">Print / PDF</button>
+  <button id="bShare" type="button">Share</button>
+  <button id="bSave" type="button">Save file</button>
+</div></div>
+
+<!-- roles dialog -->
+<div class="ov hidden" id="ovRoles"><div class="box">
+  <h2 style="margin-bottom:6px">Roles &amp; hourly rates</h2>
+  <div class="hint" style="margin:0 0 10px">Stored on this device only. A labor line picks up the rate for its role.</div>
+  <div id="roleRows"></div>
+  <button class="small" id="roleAdd" type="button">＋ Add role</button>
+  <div style="text-align:right;margin-top:12px"><button class="primary" id="roleDone" type="button">Done</button></div>
+</div></div>
+
+<div class="ov hidden" id="ovSign"><div class="box" style="text-align:center">
+  <h2 style="justify-content:center">Sign in to share projects</h2>
+  <p>Sign in with your Johnson Engineering Dropbox account to see the team's projects, share yours, and create folders from any device.</p>
+  <p class="hint err" id="signMsg"></p>
+  <p><button class="primary" id="signInBtn" type="button">Sign in with Dropbox</button></p>
+  <p><a href="#" id="signLocal">Use on this device only for now</a></p>
+</div></div>
+<div class="ov hidden" id="ovConflict"><div class="box">
+  <h2>Someone else changed this</h2>
+  <p id="cfText"></p>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <button id="cfMine" type="button"><b>Keep mine</b> — replace the team's version with mine</button>
+    <button id="cfTheirs" type="button"><b>Take theirs</b> — discard my changes on this device</button>
+    <button id="cfBoth" type="button"><b>Keep both</b> — save mine as a separate copy and take theirs</button>
+    <button id="cfCancel" type="button">Decide later</button>
+  </div>
+</div></div>
+<div class="ov hidden" id="ovDel"><div class="box">
+  <h2>Delete project</h2>
+  <p id="delText"></p>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <button id="delLocal" type="button">Remove from this device only</button>
+    <button id="delAll" type="button" style="color:var(--danger)">Delete for everyone</button>
+    <button id="delCancel" type="button">Cancel</button>
+  </div>
+</div></div>
+<div id="toast"></div>
+<div id="printView"></div>
+
+<script>/*%%TEAMCFG-BEGIN%%*/
+var TEAM_CONFIG={"mode":"off"};
+/*%%TEAMCFG-END%%*/</script>
+<script>/* ==TEAM-BEGIN== */
+/* Team layer for the Project Kickoff app: Dropbox sign-in (OAuth 2 code flow + PKCE, no secret in the page) and a shared Dropbox folder.
+   Adapted from the Ventilation Sizing app's team.js (see app/_src/team.js) with the same hard-won details:
+   - the team folder is reached with the header  Dropbox-API-Path-Root: {".tag":"root","root":"<root namespace id>"}  and an ordinary "/<folder>/..." path;
+   - a file's `rev` plays the eTag, so two people never silently overwrite each other (a rev mismatch comes back as TeamError 'conflict');
+   - Dropbox reports folders you can't see as "not found", so a missing base folder is explained as "not shared with you".
+   Data layout under <folder>:   projects/<projectId>.json   one file per project
+                                 clients.json                the shared client list (numbers, addresses, contacts, reserved project numbers)
+   This file is the source of truth: _tools/build-kickoff.js pastes it into Project_Kickoff_Form.html between the TEAM markers, and
+   tests/kickoff/team.test.js runs it from Node against tests/kickoff/mock-dropbox.js. No DOM access in here. */
+var TEAM = (function () {
+  'use strict';
+  function TeamError(code, msg, status) { var e = new Error(msg || code); e.name = 'TeamError'; e.code = code; e.status = status || 0; return e; }
+  var MAX_UPLOAD = 4 * 1024 * 1024;
+
+  function createClient(o) {
+    var f = o.fetch || function () { return fetch.apply(null, arguments); };
+    var api = (o.apiBase || 'https://api.dropboxapi.com').replace(/\/+$/, ''), cdn = (o.contentBase || 'https://content.dropboxapi.com').replace(/\/+$/, '');
+    var folderName = String(o.folder || 'Project Kickoffs').replace(/^\/+|\/+$/g, ''), base = '/' + folderName;
+    var group = '/' + String(o.groupFolder || 'Johnson Engineering Group').replace(/^\/+|\/+$/g, '');
+    var P = function (sub) { return base + '/' + sub; };
+    var pathRoot = o.rootNamespaceId ? JSON.stringify({ '.tag': 'root', root: String(o.rootNamespaceId) }) : '';
+    var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+    var hdrJson = function (x) { return JSON.stringify(x).replace(/[\u007f-￿]/g, function (c) { return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4); }); };
+    var names = {}, verifiedAt = 0, none = { name: '', email: '' };
+
+    function dbxError(status, sum, what) {
+      var t = function (code, msg) { var e = TeamError(code, msg, status); e.summary = sum; return e; };
+      if (status === 401) return t('auth', 'Sign in again to reach the team folder.');
+      if (status === 422 && /invalid_root/.test(sum)) return t('server', 'Dropbox did not accept the team space for this account (invalid root) - tell the person who set up the app.');
+      if (status === 403 || /no_write_permission|no_permission|team_access|restricted_content|access_denied/.test(sum)) return t('denied', 'Dropbox says you do not have access to that folder - ask the admin to share it with you.');
+      if (status === 409 && /not_found/.test(sum)) return t('missing', (what || 'That') + ' is not in Dropbox.');
+      if (status === 409 && /conflict/.test(sum)) return t('conflict', 'Someone else changed this since you last synced.');
+      return t('server', 'Dropbox returned an error (' + status + (sum ? ': ' + String(sum).slice(0, 80) : '') + ').');
+    }
+    async function call(kind, endpoint, arg, body, what) {
+      var attempt = 0;
+      for (;;) {
+        var tok; try { tok = await o.getToken(); } catch (e) { throw TeamError('auth', 'Sign in again to reach the team folder.'); }
+        var headers = { Authorization: 'Bearer ' + tok }, opt = { method: 'POST', headers: headers }, url;
+        if (pathRoot && /^files\//.test(endpoint)) headers['Dropbox-API-Path-Root'] = pathRoot;
+        if (kind === 'rpc') { url = api + '/2/' + endpoint; if (arg !== undefined) { headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(arg); } }
+        else { url = cdn + '/2/' + endpoint; headers['Dropbox-API-Arg'] = hdrJson(arg); if (kind === 'up') { headers['Content-Type'] = 'application/octet-stream'; opt.body = body; } }
+        var res; try { res = await f(url, opt); } catch (e) { throw TeamError('offline', 'Cannot reach Dropbox - check the connection.'); }
+        if (res.ok) return res;
+        var text = await res.text().catch(function () { return ''; }), j = null; try { j = JSON.parse(text); } catch (e) { /* plain text */ }
+        var sum = (j && j.error_summary) || text || '';
+        if ((res.status === 429 || res.status === 503 || /too_many_write_operations|too_many_requests/.test(sum)) && attempt < 2) {
+          attempt++; await sleep(Math.min(8, +res.headers.get('Retry-After') || (j && j.error && j.error.retry_after) || attempt * 2) * (o.retryScale == null ? 1000 : o.retryScale)); continue;
+        }
+        throw dbxError(res.status, sum, what);
+      }
+    }
+    async function ensureFolder() {
+      if (Date.now() - verifiedAt < (o.verifyMs == null ? 600000 : o.verifyMs)) return;
+      try { await call('rpc', 'files/get_metadata', { path: base }); verifiedAt = Date.now(); }
+      catch (e) { if (e.code === 'missing') throw TeamError('nofolder', 'The team folder "' + folderName + '" is not in your Dropbox - ask the admin to share it with you.', 409); throw e; }
+    }
+    async function resolveNames(ids) {
+      var need = Array.from(new Set(ids.filter(function (x) { return x && !names[x]; })));
+      if (!need.length) return;
+      try { var r = await call('rpc', 'users/get_account_batch', { account_ids: need }); (await r.json()).forEach(function (a) { if (a && a.account_id) names[a.account_id] = { name: (a.name && a.name.display_name) || '', email: a.email || '' }; }); } catch (e) { /* best effort */ }
+    }
+    var modId = function (m) { return m && m.sharing_info && m.sharing_info.modified_by; };
+    var byOf = function (m) { return (m.sharing_info && names[m.sharing_info.modified_by]) || none; };
+    var meta = function (m) { return { id: String(m.name || '').replace(/\.json$/i, ''), eTag: m.rev, size: m.size || 0, modifiedAt: m.server_modified ? Date.parse(m.server_modified) : 0, modifiedBy: byOf(m) }; };
+    async function listAll(path) {
+      var r = await call('rpc', 'files/list_folder', { path: path, recursive: false, limit: o.pageSize || 500 }), j = await r.json(), entries = j.entries || [];
+      while (j.has_more) { r = await call('rpc', 'files/list_folder/continue', { cursor: j.cursor }); j = await r.json(); entries = entries.concat(j.entries || []); }
+      return entries;
+    }
+    async function download(path, what) {
+      var r = await call('down', 'files/download', { path: path }, undefined, what), text = await r.text(), m = null, h = r.headers.get('Dropbox-API-Result');
+      if (h) { try { m = JSON.parse(h); } catch (e) { /* fall back below */ } }
+      if (!m || !m.rev) m = await (await call('rpc', 'files/get_metadata', { path: path })).json();
+      await resolveNames([modId(m)]);
+      return { text: text, meta: m };
+    }
+
+    return {
+      folderName: folderName,
+      async me() { var r = await call('rpc', 'users/get_current_account'), j = await r.json(); return { id: j.account_id, name: (j.name && j.name.display_name) || '', email: j.email || '', rootNamespaceId: j.root_info && j.root_info.root_namespace_id }; },
+      /* ---- projects ---- */
+      async listProjects() {
+        await ensureFolder();
+        var entries; try { entries = await listAll(P('projects')); } catch (e) { if (e.code === 'missing') return []; throw e; }
+        var files = entries.filter(function (x) { return x['.tag'] === 'file' && /\.json$/i.test(x.name || ''); });
+        await resolveNames(files.map(modId)); return files.map(meta);
+      },
+      async getProject(id) {
+        var d; try { d = await download(P('projects/' + id + '.json'), 'project ' + id); } catch (e) { if (e.code === 'missing') throw TeamError('missing', 'That project is not in the team folder any more.', 404); throw e; }
+        var p; try { p = JSON.parse(d.text); } catch (e) { throw TeamError('server', 'That project file in the team folder is not readable.'); }
+        return { project: p, eTag: d.meta.rev, modifiedAt: d.meta.server_modified ? Date.parse(d.meta.server_modified) : 0, modifiedBy: byOf(d.meta) };
+      },
+      async putProject(project, rev) {
+        var body = JSON.stringify(project); if (body.length > MAX_UPLOAD) throw TeamError('toolarge', 'This project is too large to upload.');
+        await ensureFolder();
+        var r = await call('up', 'files/upload', { path: P('projects/' + project.id + '.json'), mode: rev ? { '.tag': 'update', update: rev } : { '.tag': 'add' }, autorename: false, mute: true }, body);
+        var m = await r.json(); await resolveNames([modId(m)]); return meta(m);
+      },
+      async removeProject(id, rev) {
+        var path = P('projects/' + id + '.json');
+        try { await call('rpc', 'files/delete_v2', rev ? { path: path, parent_rev: rev } : { path: path }); }
+        catch (e) {
+          if (e.status === 409 && rev) { var m = null; try { m = await (await call('rpc', 'files/get_metadata', { path: path })).json(); } catch (e2) { if (e2.code === 'missing') return; throw e2; } if (m.rev !== rev) throw TeamError('conflict', 'Someone else changed this since you last synced.', 409); }
+          else if (e.code === 'missing') return;
+          throw e;
+        }
+      },
+      /* ---- shared client list ---- */
+      async getClients() {
+        await ensureFolder();
+        try { var d = await download(P('clients.json'), 'the client list'); var j = null; try { j = JSON.parse(d.text); } catch (e) { j = null; } return { data: j, eTag: d.meta.rev }; }
+        catch (e) { if (e.code === 'missing') return { data: null, eTag: null }; throw e; }
+      },
+      async putClients(data, rev) {
+        await ensureFolder();
+        var r = await call('up', 'files/upload', { path: P('clients.json'), mode: rev ? { '.tag': 'update', update: rev } : { '.tag': 'add' }, autorename: false, mute: true }, JSON.stringify(data));
+        return (await r.json()).rev;
+      },
+      /* ---- the company folder tree (Technical / Drafting / Data Files / Proposals) ---- */
+      group: group,
+      // names of the sub-folders of an absolute Dropbox path such as "/Johnson Engineering Group/Technical"; null if the folder does not exist
+      async listDirs(path) {
+        var entries; try { entries = await listAll(path); } catch (e) { if (e.code === 'missing') return null; throw e; }
+        return entries.filter(function (x) { return x['.tag'] === 'folder'; }).map(function (x) { return x.name; });
+      },
+      // 'created' | 'exists'. The parent has to exist (Dropbox would create parents, but then a typo would silently build a new tree)
+      async createFolder(path) {
+        try { await call('rpc', 'files/create_folder_v2', { path: path, autorename: false }); return 'created'; }
+        catch (e) { if (e.code === 'conflict') return 'exists'; throw e; }
+      }
+    };
+  }
+
+  function createAuth(o) {
+    var f = o.fetch || function () { return fetch.apply(null, arguments); }, store = o.storage, sess = o.session, loc = o.location, hist = o.history;
+    var cr = o.crypto || (typeof crypto !== 'undefined' ? crypto : null), now = o.now || function () { return Date.now(); };
+    var authBase = (o.authBase || 'https://www.dropbox.com').replace(/\/+$/, ''), apiBase = (o.apiBase || 'https://api.dropboxapi.com').replace(/\/+$/, '');
+    var SCOPE = o.scopes || ['account_info.read', 'files.metadata.read', 'files.content.read', 'files.content.write', 'sharing.read'];
+    var TOK = 'kickoff_dbx_tokens', ACC = 'kickoff_dbx_acct', PK = 'kickoff_dbx_pkce';
+    var get = function (s, k) { try { return JSON.parse(s.getItem(k) || 'null'); } catch (e) { return null; } };
+    var put = function (s, k, v) { try { s.setItem(k, JSON.stringify(v)); } catch (e) { /* storage blocked */ } };
+    var b64url = function (bytes) { return btoa(String.fromCharCode.apply(null, Array.from(bytes))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+    var rand = function (n) { var a = new Uint8Array(n); cr.getRandomValues(a); return b64url(a); };
+    var tok = get(store, TOK), acct = get(store, ACC), lastError = null, refreshing = null;
+    var clean = function () { try { hist.replaceState(null, '', loc.pathname); } catch (e) { /* ignore */ } };
+    async function post(path, params) { var r = await f(apiBase + path, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(params).toString() }); var j = null; try { j = await r.json(); } catch (e) { /* empty */ } return { ok: r.ok, status: r.status, j: j || {} }; }
+    async function exchange(code, verifier) {
+      var r = await post('/oauth2/token', { code: code, grant_type: 'authorization_code', client_id: o.appKey, redirect_uri: o.redirectUri, code_verifier: verifier });
+      if (!r.ok || !r.j.access_token) throw new Error('Dropbox did not accept the sign-in (' + (r.j.error_description || r.j.error || r.status) + ').');
+      tok = { access: r.j.access_token, refresh: r.j.refresh_token || null, expiresAt: now() + (r.j.expires_in || 14400) * 1000, accountId: r.j.account_id || '' }; put(store, TOK, tok);
+    }
+    function refresh() {
+      if (!tok || !tok.refresh) { var e = new Error('Your Dropbox sign-in has expired - sign in again.'); e.expired = true; throw e; }
+      return refreshing || (refreshing = (async function () {
+        try {
+          var r = await post('/oauth2/token', { grant_type: 'refresh_token', refresh_token: tok.refresh, client_id: o.appKey });
+          if (!r.ok || !r.j.access_token) { if (r.status === 400 || r.status === 401) { tok = null; acct = null; store.removeItem(TOK); store.removeItem(ACC); var e2 = new Error('Your Dropbox sign-in has expired - sign in again.'); e2.expired = true; throw e2; } throw new Error('Dropbox is not reachable right now.'); }
+          tok = Object.assign({}, tok, { access: r.j.access_token, expiresAt: now() + (r.j.expires_in || 14400) * 1000 }); put(store, TOK, tok); return tok.access;
+        } finally { refreshing = null; }
+      })());
+    }
+    async function getToken() { if (!tok) throw new Error('not signed in'); return tok.expiresAt - now() > 60000 ? tok.access : refresh(); }
+    async function fetchAccount() {
+      var r = await f(apiBase + '/2/users/get_current_account', { method: 'POST', headers: { Authorization: 'Bearer ' + await getToken() } }); if (!r.ok) throw new Error('Could not read your Dropbox account (' + r.status + ').');
+      var j = await r.json(); return { id: j.account_id, name: (j.name && j.name.display_name) || '', email: j.email || '', rootNamespaceId: j.root_info && j.root_info.root_namespace_id };
+    }
+    return {
+      lastError: function () { return lastError; },
+      account: function () { return acct; },
+      async init() {
+        var q = new URLSearchParams(loc.search || '');
+        if (q.get('error')) { lastError = new Error(q.get('error_description') || q.get('error')); clean(); sess.removeItem(PK); }
+        else if (q.get('code')) {
+          var pk = get(sess, PK); clean(); sess.removeItem(PK);
+          if (!pk || pk.state !== q.get('state')) lastError = new Error('The sign-in answer did not match this browser session - please try again.');
+          else { try { await exchange(q.get('code'), pk.verifier); acct = null; store.removeItem(ACC); } catch (e) { lastError = e; } }
+        }
+        if (!tok) return null;
+        if (!acct) { try { acct = await fetchAccount(); put(store, ACC, acct); } catch (e) { lastError = lastError || e; return null; } }
+        return acct;
+      },
+      async signIn() {
+        var verifier = rand(48), state = rand(18), digest = await cr.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+        put(sess, PK, { verifier: verifier, state: state });
+        loc.assign(authBase + '/oauth2/authorize?' + new URLSearchParams({ client_id: o.appKey, response_type: 'code', code_challenge: b64url(new Uint8Array(digest)), code_challenge_method: 'S256', token_access_type: 'offline', redirect_uri: o.redirectUri, state: state, scope: SCOPE.join(' ') }).toString());
+      },
+      getToken: getToken,
+      async signOut() { try { if (tok) await f(apiBase + '/2/auth/token/revoke', { method: 'POST', headers: { Authorization: 'Bearer ' + tok.access } }); } catch (e) { /* best effort */ } tok = null; acct = null; store.removeItem(TOK); store.removeItem(ACC); }
+    };
+  }
+
+  return { TeamError: TeamError, createClient: createClient, createAuth: createAuth };
+})();
+if (typeof module !== 'undefined') module.exports = { TEAM: TEAM };
+
+/* ==TEAM-END== */</script>
+<script>
+(function(){
+'use strict';
+var LS='kickoff.v2', OLD='projectKickoff.autosave.v1';
+var LOGO='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';
+var STAFF=['Matt Johnson','Dennis Johnson','Mike Johnson','Logan Richert','Gabe Nelson','Jake Likness'];
+/* Services -> Technical subfolders and Drafting subfolders. Drafting sets seen in Dropbox:
+   Revit/structural = CALCS, PDF, REC, REF, STR; AutoCAD = CAD (+EXPORTS on GDUs); civil = CIV, REC. */
+var DR={R:['CALCS','PDF','REC','REF','STR'],C:['CAD'],G:['CAD','EXPORTS'],V:['CIV','REC'],N:[]};
+var SERVICES=[
+ {"g":"Inspection & assessment","n":"Structural inspection","t":["Notes","Pictures","Final Report"],"d":"N","k":"assessment evaluation"},
+ {"g":"Inspection & assessment","n":"Truss inspection","t":["Notes","Pictures","Final Report"],"d":"N","k":"evaluation purlin roof"},
+ {"g":"Inspection & assessment","n":"Wall inspection","t":["Notes","Pictures","Final Report"],"d":"N","k":"sheerwall exterior wall"},
+ {"g":"Inspection & assessment","n":"Foundation assessment","t":["Notes","Pictures","Final Report"],"d":"N","k":"footing evaluation"},
+ {"g":"Inspection & assessment","n":"Storm damage assessment","t":["Notes","Pictures","Final Report"],"d":"N","k":"wind tornado collapse hail"},
+ {"g":"Inspection & assessment","n":"Fire inspection","t":["Notes","Pictures","Final Report"],"d":"N","k":""},
+ {"g":"Inspection & assessment","n":"Truck wash assessment","t":["Notes","Pictures","Final Report"],"d":"N","k":"car wash"},
+ {"g":"Inspection & assessment","n":"Site assessment","t":["Notes","Pictures","Final Report"],"d":"N","k":"phase 1 environmental"},
+ {"g":"Repair","n":"Truss repair","t":["Notes","Pictures","Specs","Final Report"],"d":"R","k":"bracing"},
+ {"g":"Repair","n":"Wall repair","t":["Notes","Pictures","Specs","Final Report"],"d":"R","k":""},
+ {"g":"Repair","n":"Tank repair","t":["Notes","Pictures","Specs","Final Report"],"d":"R","k":"cistern"},
+ {"g":"Repair","n":"Pit repair","t":["Notes","Pictures","Specs","Final Report"],"d":"R","k":"manure"},
+ {"g":"Repair","n":"Foundation repair","t":["Notes","Pictures","Specs","Final Report"],"d":"R","k":"footing"},
+ {"g":"Design","n":"New building design","t":["Specs","Notes","Final Report"],"d":"R","k":"barn shop hangar office"},
+ {"g":"Design","n":"Building addition","t":["Specs","Notes","Final Report"],"d":"R","k":"expansion"},
+ {"g":"Design","n":"Remodel design","t":["Specs","Notes","Final Report"],"d":"R","k":"renovation"},
+ {"g":"Design","n":"Foundation design","t":["Specs","Notes","Final Report"],"d":"R","k":"footing slab"},
+ {"g":"Design","n":"Tank design","t":["Specs","Notes","Final Report"],"d":"R","k":"cistern"},
+ {"g":"Design","n":"Beam design","t":["Specs","Notes","Final Report"],"d":"R","k":"header lvl"},
+ {"g":"Design","n":"Recycle system design","t":["Specs","Notes","Final Report"],"d":"R","k":"flush"},
+ {"g":"Design","n":"Digester design","t":["Specs","Notes","Final Report"],"d":"C","k":"rng biogas"},
+ {"g":"Design","n":"GDU design","t":["Design Report","Construction Quality Assurance Plan","Preconstruction Meeting","Permit","Operation & Maintenance"],"d":"G","k":"gilt development unit"},
+ {"g":"Design","n":"Manure pit design","t":["Design Report","Construction Quality Assurance Plan","Preconstruction Meeting","Permit","Operation & Maintenance"],"d":"G","k":"pit slats sow farm"},
+ {"g":"Studies","n":"Ventilation study","t":["Notes","Final Report"],"d":"N","k":"fan inlet static pressure"},
+ {"g":"Studies","n":"CFD simulation","t":["Notes","Final Report"],"d":"N","k":"airflow"},
+ {"g":"Studies","n":"Water balance","t":["Notes","Final Report"],"d":"N","k":"lagoon"},
+ {"g":"Permits & documentation","n":"Permit application","t":["Permit","Notes"],"d":"N","k":"cafo manure mpca datcp eaw"},
+ {"g":"Permits & documentation","n":"Permit recertification","t":["Permit","Notes"],"d":"N","k":"renewal"},
+ {"g":"Permits & documentation","n":"Construction quality assurance plan","t":["Construction Quality Assurance Plan","Notes"],"d":"N","k":"cqap"},
+ {"g":"Permits & documentation","n":"Construction documentation report","t":["Construction Documentation Report","Preconstruction Meeting","Final Inspection","Pictures"],"d":"N","k":"cqa concrete placement"},
+ {"g":"Permits & documentation","n":"As-built package","t":["Notes","Pictures","Final Report"],"d":"C","k":"as-built asbuilt"},
+ {"g":"Permits & documentation","n":"Digital twin","t":["Notes","Pictures","Final Report"],"d":"C","k":"scan point cloud 3d"},
+ {"g":"Permits & documentation","n":"Concrete testing","t":["Notes","Pictures","Final Report"],"d":"N","k":"cylinders rebound hammer"},
+ {"g":"Civil & survey","n":"Staking","t":["Notes"],"d":"V","k":"survey layout"},
+ {"g":"Civil & survey","n":"Civil site design","t":["Specs","Notes","Final Report"],"d":"V","k":"grading"},
+ {"g":"Civil & survey","n":"Drainage design","t":["Specs","Notes","Final Report"],"d":"V","k":"storm sewer tile"}];
+var AREAS=[['tech','Technical'],['draft','Drafting'],['data','Data Files'],['prop','Proposals']];
+var CUSTOM_DEF={t:['Notes','Final Report'],d:'C'};
+function svcDef(n){return SERVICES.filter(function(s){return s.n===n})[0]||CUSTOM_DEF}
+function uniq(a){var seen={},o=[];a.forEach(function(x){var k=x.toLowerCase();if(!seen[k]){seen[k]=1;o.push(x)}});return o}
+function autoSubs(P,which){
+  var defs=(P.services.length?P.services:['Other']).map(svcDef);
+  if(which==='tech')return uniq([].concat.apply([],defs.map(function(d){return d.t})));
+  return uniq([].concat.apply([],defs.map(function(d){return DR[d.d]})));
+}
+var KINDS=['Expense','Travel','Subconsultant','Other'];
+var $=function(id){return document.getElementById(id)};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function num(v){var n=parseFloat(String(v==null?'':v).replace(/[$,\s]/g,''));return isNaN(n)?0:n}
+function comma(n,d){return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function money(n){return (n<0?'-$':'$')+comma(Math.abs(n),2)}
+function r2(n){return Math.round(n*100)/100}
+function pad(n,w){var s=String(n);while(s.length<w)s='0'+s;return s}
+function uid(){return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function fmtDate(ts){return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show')},2600)}
+function cleanName(s){return String(s||'').replace(/[\\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim().replace(/[. ]+$/,'')}
+
+/* ---------- store ---------- */
+var DB,S=null;
+function defaults(){return{projects:[],clients:[],settings:{roles:[{name:'Principal / PE',rate:''},{name:'Engineer',rate:''},{name:'Technician',rate:''},{name:'Drafter',rate:''}],prepBy:'',staff:[]}}}
+function loadDB(){
+  var d=defaults();
+  try{var r=JSON.parse(localStorage.getItem(storeKey()));if(r){d.projects=r.projects||[];d.clients=r.clients||[];d.settings=Object.assign(d.settings,r.settings||{});d.scan=r.scan||null}}catch(e){}
+  DB=d;d.projects.forEach(norm);
+  try{ /* bring the old single-draft autosave forward once */
+    var o=localStorage.getItem(OLD);
+    if(o&&!localStorage.getItem(storeKey())){ /* only before the new store exists */var p=JSON.parse(o),n=blankProject();
+      ['clientName','clientNo','clientAddr','projName','projNo','projAddr','projDesc','fee','fixedFee','nte','estNotes'].forEach(function(k){if(p[k]!=null)n[k]=p[k]});
+      if(p.contacts&&p.contacts.length)n.contacts=p.contacts;
+      if(p.lines&&p.lines.length)n.labor=p.lines.map(function(l){return{desc:l.desc||'',role:'',hours:l.hours||'',rate:l.rate||p.defRate||'',amount:l.amount||''}});
+      if(!isEmpty(n))d.projects.push(n);
+    }}catch(e){}
+  return d;
+}
+function saveDB(){if(!DB)return;try{localStorage.setItem(storeKey(),JSON.stringify(DB));$('status').textContent='Saved on this device'}catch(e){$('status').textContent='Could not save on this device'}}
+
+function blankContact(){return{name:'',title:'',email:'',phone:''}}
+function blankLabor(){return{desc:'',role:'',hours:'',rate:'',amount:''}}
+function blankCost(){return{kind:'Expense',desc:'',amount:'',markup:''}}
+function blankProject(){
+  return{id:uid(),status:'draft',created:Date.now(),updated:Date.now(),
+    clientName:'',clientNo:'',clientAddr:'',contacts:[blankContact()],
+    projName:'',projNo:'',projAddr:'',projDesc:'',services:[],lead:'',prepBy:(DB&&DB.settings.prepBy)||'',startDate:'',dueDate:'',propStatus:'',poNo:'',
+    billSame:true,billName:'',billEmail:'',billAddr:'',
+    areas:{tech:true,draft:true,data:false,prop:false},subs:{tech:autoSubs({services:[]},'tech'),draft:autoSubs({services:[]},'draft')},subAuto:{tech:true,draft:true},
+    propName:'',propYear:String(new Date().getFullYear()),folderDone:null,
+    createdBy:ACCT?acctMini(ACCT):null,editedBy:null,remote:null,dirty:false,
+    fee:'fixed',fixedFee:'',nte:'',contPct:'',labor:[blankLabor()],costs:[],milestones:[{name:'',pct:''}],estNotes:''};
+}
+/* bring older saved projects up to the current shape */
+function norm(p){
+  var b=blankProject();
+  if(!Array.isArray(p.services))p.services=[];
+  if(p.service&&!p.services.length)p.services=[p.service];
+  delete p.service;delete p.subTpl;
+  if(!p.areas)p.areas=b.areas;
+  if(Array.isArray(p.subs))p.subs={tech:p.subs,draft:autoSubs(p,'draft')};
+  else if(!p.subs)p.subs=b.subs;
+  if(!p.subAuto||typeof p.subAuto!=='object')p.subAuto={tech:p.subAuto!==false,draft:true};
+  if(p.propName==null)p.propName='';
+  if(p.remote===undefined)p.remote=null;
+  if(p.dirty===undefined)p.dirty=false;
+  if(p.createdBy===undefined)p.createdBy=null;
+  if(p.editedBy===undefined)p.editedBy=null;
+  if(!p.propYear)p.propYear=b.propYear;
+  if(p.folderDone&&p.folderDone.path&&!p.folderDone.paths)p.folderDone.paths=[p.folderDone.path];
+  ['contacts','labor','costs','milestones'].forEach(function(k){if(!Array.isArray(p[k]))p[k]=b[k]});
+  if(!p.contacts.length)p.contacts=[blankContact()];
+  if(!p.labor.length)p.labor=[blankLabor()];
+  if(!p.milestones.length)p.milestones=[{name:'',pct:''}];
+  return p;
+}
+function isEmpty(p){
+  if(['clientName','clientNo','clientAddr','projName','projNo','projAddr','projDesc','fixedFee','nte','estNotes','poNo','lead'].some(function(k){return String(p[k]||'').trim()}))return false;
+  if((p.contacts||[]).some(function(c){return c.name||c.email||c.phone||c.title}))return false;
+  if((p.labor||[]).some(function(l){return l.desc||l.hours||l.amount}))return false;
+  if((p.costs||[]).some(function(c){return c.desc||c.amount}))return false;
+  return true;
+}
+function jobRef(p){return p.clientNo&&p.projNo?p.clientNo+'-'+p.projNo:(p.clientNo||p.projNo||'No number yet')}
+
+/* ---------- estimate math ---------- */
+function roleRate(name){var r=DB.settings.roles.filter(function(x){return x.name===name})[0];return r?num(r.rate):0}
+function lineRate(l){return l.rate!==''?num(l.rate):roleRate(l.role)}
+function calc(P){
+  var lab=0,hrs=0,oc=0;
+  P.labor.forEach(function(l){lab+=num(l.amount);hrs+=num(l.hours)});
+  P.costs.forEach(function(c){oc+=num(c.amount)*(1+num(c.markup)/100)});
+  var sub=lab+oc,cont=sub*num(P.contPct)/100,est=sub+cont;
+  var total=P.fee==='fixed'?(P.fixedFee!==''?num(P.fixedFee):est):est;
+  return{lab:lab,hrs:hrs,oc:oc,cont:cont,est:est,total:total};
+}
+function autoAmt(l){var r=lineRate(l);if(l.hours!==''&&r>0)l.amount=comma(r2(num(l.hours)*r),2)}
+
+/* ---------- clients ---------- */
+function findClientByName(n){n=String(n||'').trim().toLowerCase();if(!n)return null;return DB.clients.filter(function(c){return c.name.toLowerCase()===n})[0]||null}
+function findClientByNo(no){no=String(no||'').trim();if(!no)return null;return DB.clients.filter(function(c){return c.no===no})[0]||null}
+function upsertClient(P){
+  if(!P.clientName.trim()||!P.clientNo.trim())return;
+  var c=findClientByNo(P.clientNo)||findClientByName(P.clientName);
+  var cons=P.contacts.filter(function(x){return x.name||x.email||x.phone});
+  if(!c){c={no:P.clientNo.trim(),name:P.clientName.trim(),addr:'',contacts:[],known:[],width:2};DB.clients.push(c)}
+  c.name=P.clientName.trim();c.no=P.clientNo.trim();
+  var before=JSON.stringify([c.name,c.addr,c.contacts]);
+  if(P.clientAddr.trim())c.addr=P.clientAddr;
+  if(cons.length)c.contacts=JSON.parse(JSON.stringify(cons));
+  if(JSON.stringify([c.name,c.addr,c.contacts])!==before)c.updated=Date.now();
+}
+function usedProjNums(no,exceptId){
+  var u=[],c=findClientByNo(no);if(c&&c.known)u=u.concat(c.known);
+  if(c&&c.reserved)Object.keys(c.reserved).forEach(function(k){if(c.reserved[k].id!==exceptId){var n=parseInt(k,10);if(!isNaN(n))u.push(n)}});
+  DB.projects.forEach(function(p){if(p.clientNo===no&&p.id!==exceptId&&p.projNo){var n=parseInt(p.projNo,10);if(!isNaN(n))u.push(n)}});
+  return u;
+}
+function nextProjNum(no){
+  var u=usedProjNums(no,S?S.id:null),c=findClientByNo(no),w=Math.max(2,(c&&c.width)||2),mx=0;
+  u.forEach(function(n){if(n>mx)mx=n;});
+  DB.projects.forEach(function(p){if(p.clientNo===no&&p.projNo)w=Math.max(w,String(p.projNo).length)});
+  return pad(mx+1,w);
+}
+function nextClientNo(){
+  var mx=0;DB.clients.forEach(function(c){if(/^\d{4}$/.test(c.no)){mx=Math.max(mx,parseInt(c.no,10))}});
+  DB.projects.forEach(function(p){if(/^\d{4}$/.test(p.clientNo))mx=Math.max(mx,parseInt(p.clientNo,10))});
+  return pad(mx+1,4);
+}
+
+/* ---------- persistence ---------- */
+var saveT;
+function persistNow(){
+  clearTimeout(saveT);if(!DB)return;
+  if(S){
+    if(!isEmpty(S)){if(DB.projects.indexOf(S)<0)DB.projects.push(S);upsertClient(S)}
+    var u=S.lead,pb=S.prepBy;
+    if(pb)DB.settings.prepBy=pb;
+    [u,pb].forEach(function(n){if(n&&STAFF.indexOf(n)<0&&DB.settings.staff.indexOf(n)<0)DB.settings.staff.push(n)});
+  }
+  saveDB();
+}
+function touch(){if(!S)return;S.updated=Date.now();if(S.remote)S.dirty=true;clearTimeout(saveT);saveT=setTimeout(persistNow,300);derived();if(CL)renderTeamBanner()}
+
+/* ---------- views ---------- */
+var view='dash',dashTab='all',dashQ='';
+function show(v){
+  view=v;
+  ['dash','clients','form'].forEach(function(n){
+    $('v'+n.charAt(0).toUpperCase()+n.slice(1)).classList.toggle('hidden',n!==v);
+    $('bar'+n.charAt(0).toUpperCase()+n.slice(1)).classList.toggle('hidden',n!==v);
+  });
+  $('ttl').textContent=v==='dash'?'Project Kickoff':v==='clients'?'Clients':'New Project';
+  if(v==='dash'){renderDash();if(CL)refreshTeam()}
+  if(v==='clients')renderClients();
+  $('dRefresh').classList.toggle('hidden',!(CL&&v==='dash'));
+  $('bUpload').classList.toggle('hidden',!(CL&&v==='form'));
+  window.scrollTo(0,0);
+}
+function openProject(p){S=p;renderForm();show('form');derived();if(CL)renderTeamBanner();else $('tBanner').classList.add('hidden')}
+
+/* ---------- dashboard ---------- */
+function dashItems(){
+  var items=DB.projects.map(function(p){
+    return{id:p.id,p:p,sum:null,jobRef:jobRef(p),name:p.projName,client:p.clientName,status:p.status,fee:p.fee,total:calc(p).total,createdBy:p.createdBy,editedBy:p.editedBy,
+      updated:p.updated,state:CL?teamState(p):null,miss:missingList(p).length,folder:!!p.folderDone};
+  });
+  if(CL){
+    var have={};DB.projects.forEach(function(p){have[p.id]=1});
+    Object.keys(TIDX.sum).forEach(function(id){
+      if(have[id])return;var s=TIDX.sum[id];
+      items.push({id:id,p:null,sum:s,jobRef:s.jobRef,name:s.projName,client:s.clientName,status:s.status,fee:s.fee,total:s.total,createdBy:s.createdBy,
+        editedBy:s.editedBy||(s.modifiedBy?{name:s.modifiedBy.name,at:s.modifiedAt}:null),updated:s.updated,state:'teamonly',miss:0,folder:false});
+    });
+  }
+  return items;
+}
+function renderTeamBar(){
+  var el=$('teamBar');
+  if(!TEAMON){el.classList.add('hidden');return}
+  el.classList.remove('hidden');
+  if(!ACCT){el.innerHTML='Team sharing is on. <a href="#" id="acctIn">Sign in with Dropbox</a> to see and share projects.';return}
+  var n=TIDX.list.length;
+  el.innerHTML=TIDX.busy?'Checking the team…':(TIDX.err?'<span class="err">'+esc(TIDX.err)+'</span> Showing what is on this device.':n+' project'+(n===1?'':'s')+' on the team'+(TIDX.at?' · checked '+new Date(TIDX.at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):''));
+}
+function whoLine(it){
+  if(!CL)return '';
+  var cb=it.createdBy&&(it.createdBy.name||it.createdBy.email),eb=it.editedBy&&(it.editedBy.name||it.editedBy.email);
+  var h=cb?'Created by '+esc(cb):'';
+  if(eb&&(!cb||eb!==cb))h+=(h?' · ':'')+'edited by '+esc(eb)+(it.editedBy.at?', '+fmtDate(it.editedBy.at):'');
+  return h?'<div class="who">'+h+'</div>':'';
+}
+function renderDash(){
+  renderTeamBar();
+  var items=dashItems().sort(function(a,b){return b.updated-a.updated});
+  var nd=items.filter(function(i){return i.status!=='complete'}).length,nc=items.length-nd;
+  var tb=$('dashTabs').querySelectorAll('button');
+  tb[0].textContent='All ('+items.length+')';tb[1].textContent='Drafts ('+nd+')';tb[2].textContent='Complete ('+nc+')';
+  Array.prototype.forEach.call(tb,function(b){b.classList.toggle('on',b.getAttribute('data-tab')===dashTab)});
+  var q=dashQ.toLowerCase().trim();
+  var list=items.filter(function(i){
+    var okT=dashTab==='all'||(dashTab==='draft'&&i.status!=='complete')||(dashTab==='complete'&&i.status==='complete');
+    var hay=(i.jobRef+' '+i.name+' '+i.client+' '+(i.createdBy?(i.createdBy.name||''):'')).toLowerCase();
+    return okT&&(!q||hay.indexOf(q)>=0);
+  });
+  if(!list.length){$('dashList').innerHTML='<div class="empty">'+(items.length?'No projects match.':'No projects yet.<br>Tap <b>＋ New project</b> to start one.')+'</div>';return}
+  $('dashList').innerHTML=list.map(function(i){
+    var st=i.state,chip=st?'<span class="badge '+(st==='synced'||st==='teamonly'?'team':'warn')+'">'+esc(STATE_TXT[st]||'')+'</span>':'';
+    var acts='';
+    if(CL&&i.p){
+      if(st==='local'||st==='dirty'||st==='gone')acts+='<button type="button" class="primary" data-up="'+i.id+'">Upload</button>';
+      if(st==='newer')acts+='<button type="button" class="primary" data-down="'+i.id+'">Get latest</button>';
+      if(st==='both')acts+='<button type="button" class="primary" data-resolve="'+i.id+'">Resolve…</button>';
+    }
+    if(i.p)acts+='<button type="button" data-dup="'+i.id+'" title="Duplicate">⧉</button>';
+    acts+='<button type="button" data-del="'+i.id+'" title="Delete" style="color:var(--danger)">🗑</button>';
+    return '<div class="pcard" '+(i.p?'data-open':'data-opent')+'="'+i.id+'"><div class="pc-top"><b>'+esc(i.jobRef)+'</b><span>'+
+      '<span class="badge fee">'+(i.fee==='fixed'?'Fixed fee':'T&amp;M')+'</span>'+
+      '<span class="badge '+(i.status==='complete'?'complete':'draft')+'">'+(i.status==='complete'?'Complete':'Draft')+'</span>'+chip+'</span></div>'+
+      '<div class="pc-name">'+esc(i.name||'Untitled project')+'</div>'+
+      '<div class="pc-sub">'+esc(i.client||'No client yet')+(i.total>0?' · '+money(i.total):'')+'</div>'+whoLine(i)+
+      '<div class="pc-foot"><span>Updated '+fmtDate(i.updated)+(i.status!=='complete'&&i.miss?' · '+i.miss+' item'+(i.miss>1?'s':'')+' missing':'')+(i.folder?' · folder created':'')+'</span>'+
+      '<span class="acts">'+acts+'</span></div></div>';
+  }).join('');
+}
+$('dashTabs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;dashTab=b.getAttribute('data-tab');renderDash()});
+$('dashQ').addEventListener('input',function(){dashQ=this.value;renderDash()});
+$('dashList').addEventListener('click',function(e){
+  var g=function(a){var el=e.target.closest('['+a+']');return el?el.getAttribute(a):null};
+  var up=g('data-up'),dn=g('data-down'),rs=g('data-resolve'),d=g('data-dup'),x=g('data-del'),o=g('data-open'),ot=g('data-opent');
+  if(up){var pu=byId(up);if(pu)syncUp(pu);return}
+  if(dn){var pd=byId(dn);if(pd)syncDown(pd);return}
+  if(rs){var pr=byId(rs);if(pr)resolveConflict(pr);return}
+  if(d){var src=byId(d);if(!src)return;
+    var n=JSON.parse(JSON.stringify(src));n.id=uid();n.status='draft';n.created=n.updated=Date.now();n.projNo='';n.folderDone=null;
+    n.remote=null;n.dirty=false;n.createdBy=ACCT?acctMini(ACCT):null;n.editedBy=null;
+    DB.projects.push(n);saveDB();toast('Duplicated. Set the new project number.');openProject(n);return}
+  if(x){var p=byId(x);deleteProject(p,p?null:TIDX.sum[x]);return}
+  if(o){openProject(byId(o));return}
+  if(ot)openTeamProject(ot);
+});
+function byId(id){return DB.projects.filter(function(p){return p.id===id})[0]}
+$('dNew').onclick=function(){S=blankProject();renderForm();show('form');derived();if(CL)renderTeamBanner();else $('tBanner').classList.add('hidden')};
+$('dClients').onclick=function(){show('clients')};
+$('cBack').onclick=function(){show('dash')};
+$('bBack').onclick=function(){persistNow();S=null;show('dash')};
+
+/* ---------- backup / restore ---------- */
+function download(name,text,type){
+  var blob=new Blob([text],{type:type}),file;
+  try{file=new File([blob],name,{type:type})}catch(e){}
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file]}).catch(function(){});return}
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
+}
+function stamp(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1,2)+'-'+pad(d.getDate(),2)}
+$('dBackup').onclick=function(){persistNow();download('Project Kickoff backup '+stamp()+'.json',JSON.stringify({kickoffBackup:1,projects:DB.projects,clients:DB.clients,settings:DB.settings},null,2),'application/json')};
+$('dRestore').onclick=function(){$('dFile').click()};
+function mergeIn(d){
+  var added=0,upd=0;
+  var list=d.projects||(d.projName!==undefined?[d]:[]);
+  list.forEach(function(p){
+    var n=norm(Object.assign(blankProject(),p));
+    var ex=byId(n.id);
+    if(!ex){DB.projects.push(n);added++}else if((n.updated||0)>(ex.updated||0)){DB.projects[DB.projects.indexOf(ex)]=n;upd++}
+  });
+  (d.clients||[]).forEach(function(c){
+    var ex=findClientByNo(c.no);
+    if(!ex){DB.clients.push(c)}else{
+      if(!ex.addr&&c.addr)ex.addr=c.addr;
+      if((!ex.contacts||!ex.contacts.length)&&c.contacts)ex.contacts=c.contacts;
+      if(c.known&&c.known.length)ex.known=(ex.known||[]).concat(c.known.filter(function(k){return(ex.known||[]).indexOf(k)<0}));
+      ex.width=Math.max(ex.width||2,c.width||2);
+    }
+  });
+  if(d.settings&&d.settings.roles&&DB.settings.roles.every(function(r){return !r.rate}))DB.settings.roles=d.settings.roles;
+  saveDB();return{added:added,upd:upd};
+}
+function readJson(file,cb){var r=new FileReader();r.onload=function(){try{cb(JSON.parse(r.result))}catch(e){alert('That file could not be read.')}};r.readAsText(file)}
+$('dFile').onchange=function(){var f=this.files[0];this.value='';if(!f)return;
+  readJson(f,function(d){var r=mergeIn(d);renderDash();toast(r.added+' added, '+r.upd+' updated')})};
+
+/* ---------- clients view ---------- */
+function renderClients(){
+  var q=$('cQ').value.toLowerCase().trim();
+  var list=DB.clients.slice().sort(function(a,b){return a.no<b.no?-1:a.no>b.no?1:0}).filter(function(c){return !q||(c.no+' '+c.name).toLowerCase().indexOf(q)>=0});
+  $('cList').innerHTML=list.length?list.map(function(c){
+    var n=usedProjNums(c.no,null).length;
+    return '<div class="crow"><span class="no">'+esc(c.no)+'</span><div class="nm"><b>'+esc(c.name)+'</b><div class="hint" style="margin:0">'+n+' project number'+(n===1?'':'s')+' known'+(c.contacts&&c.contacts.length?' · '+esc(c.contacts[0].name):'')+'</div></div>'+
+      '<button class="small" data-cnew="'+esc(c.no)+'" type="button">＋ Project</button>'+
+      '<button class="x" data-cdel="'+esc(c.no)+'" type="button" aria-label="Delete">×</button></div>';
+  }).join(''):'<div class="empty">No clients yet. They appear here as you save projects'+(hasFS?', or read them from the Dropbox Technical folder.':'.')+'</div>';
+  $('cScanHint').textContent=hasFS?'':'Reading the Dropbox folder needs Chrome or Edge on a computer. Export the list there and import it here.';
+  $('cScan').disabled=!hasFS;
+}
+$('cQ').addEventListener('input',renderClients);
+$('cList').addEventListener('click',function(e){
+  var n=e.target.closest('[data-cnew]'),d=e.target.closest('[data-cdel]');
+  if(n){var c=findClientByNo(n.getAttribute('data-cnew')),p=blankProject();p.clientNo=c.no;p.clientName=c.name;p.clientAddr=c.addr||'';
+    if(c.contacts&&c.contacts.length)p.contacts=JSON.parse(JSON.stringify(c.contacts));p.projNo=nextProjNum(c.no);
+    S=p;renderForm();show('form');derived();return}
+  if(d){var c2=findClientByNo(d.getAttribute('data-cdel'));if(c2&&confirm('Remove "'+c2.name+'" from the saved client list? Existing projects are not changed.')){DB.clients.splice(DB.clients.indexOf(c2),1);saveDB();renderClients()}}
+});
+$('cExport').onclick=function(){download('JEG client list '+stamp()+'.json',JSON.stringify({clients:DB.clients},null,2),'application/json')};
+$('cImport').onclick=function(){$('cFile').click()};
+$('cFile').onchange=function(){var f=this.files[0];this.value='';if(!f)return;
+  readJson(f,function(d){var before=DB.clients.length;mergeIn({clients:d.clients||[]});renderClients();toast((DB.clients.length-before)+' clients added')})};
+
+/* ---------- Dropbox Technical folder (computer only) ---------- */
+var hasFS=typeof window.showDirectoryPicker==='function';
+function idb(){return new Promise(function(res,rej){var r=indexedDB.open('kickoff-app',1);r.onupgradeneeded=function(){r.result.createObjectStore('kv')};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}})}
+function idbGet(k){return idb().then(function(db){return new Promise(function(res){var q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=function(){res(q.result)};q.onerror=function(){res(null)}})}).catch(function(){return null})}
+function idbSet(k,v){return idb().then(function(db){return new Promise(function(res){var t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=function(){res(true)};t.onerror=function(){res(false)}})}).catch(function(){return false})}
+/* root = the "Johnson Engineering Group" Dropbox folder (it holds Technical, Drafting, Data Files, Proposals).
+   An older choice of the Technical folder itself still works for the Technical area only. */
+async function childDir(h,name,create){try{return await h.getDirectoryHandle(name,{create:!!create})}catch(e){return null}}
+async function areaDir(R,name,create){
+  if(R.mode==='tech')return name==='Technical'?R.h:null;
+  return childDir(R.h,name,create);
+}
+async function getRoot(forcePick){
+  var h=forcePick?null:await idbGet('technicalRoot');
+  if(!h){
+    try{h=await window.showDirectoryPicker({mode:'readwrite',id:'jeg-dropbox'})}catch(e){return null}
+    await idbSet('technicalRoot',h);
+  }
+  try{
+    var p=await h.queryPermission({mode:'readwrite'});
+    if(p!=='granted')p=await h.requestPermission({mode:'readwrite'});
+    if(p!=='granted')return null;
+  }catch(e){}
+  if(await childDir(h,'Technical'))return{h:h,mode:'group'};
+  if(/technical/i.test(h.name))return{h:h,mode:'tech'};
+  alert('"'+h.name+'" does not look right. Choose the "Johnson Engineering Group" folder in your Dropbox (the one that contains Technical, Drafting and Proposals).');
+  await idbSet('technicalRoot',null);
+  return null;
+}
+async function scanDropbox(R,onProgress){
+  var map={},count=0;
+  async function readArea(dir,authoritative){
+    for await(var ent of dir.entries()){
+      var name=ent[0],h=ent[1];
+      if(h.kind!=='directory')continue;
+      var m=/^(\d{4}) (.+)$/.exec(name);
+      if(!m||m[1]==='0000'||/conflict/i.test(name))continue;
+      var c=map[m[1]];
+      if(!c){c=map[m[1]]={no:m[1],name:m[2].trim(),known:[],width:2};count++;if(onProgress)onProgress(count)}
+      else if(authoritative)c.name=m[2].trim();
+      try{for await(var pe of h.entries()){
+        if(pe[1].kind!=='directory')continue;
+        var pm=/^(\d{1,3})(?:\s|$)/.exec(pe[0]);
+        if(pm){var n=parseInt(pm[1],10);if(c.known.indexOf(n)<0)c.known.push(n);c.width=Math.max(c.width,pm[1].length)}
+      }}catch(e){}
+    }
+  }
+  var tech=await areaDir(R,'Technical');if(tech)await readArea(tech,true);
+  var dr=await areaDir(R,'Drafting');if(dr)await readArea(dr,false);
+  var props={},pr=await areaDir(R,'Proposals');
+  if(pr){for await(var ye of pr.entries()){
+    var ym=/^(\d{4}) Proposals$/.exec(ye[0]);if(!ym||ye[1].kind!=='directory')continue;
+    var mx=0;try{for await(var pe2 of ye[1].entries()){var nm=/^(\d+)(?:\s|$)/.exec(pe2[0]);if(nm)mx=Math.max(mx,parseInt(nm[1],10))}}catch(e){}
+    props[ym[1]]=mx;
+  }}
+  return{clients:Object.keys(map).map(function(k){return map[k]}),proposals:props};
+}
+function applyScan(res){
+  var added=0;
+  res.clients.forEach(function(s){
+    var c=findClientByNo(s.no);
+    if(!c){DB.clients.push({no:s.no,name:s.name,addr:'',contacts:[],known:s.known,width:s.width});added++}
+    else{c.known=s.known;c.width=s.width;c.name=s.name}
+  });
+  DB.scan={proposals:res.proposals||{},at:Date.now()};
+  saveDB();return added;
+}
+async function runScan(say){
+  var R=await getRoot(false);if(!R)return false;
+  say('Reading…');
+  try{var res=await scanDropbox(R,function(n){say('Reading… '+n+' clients')});
+    var a=applyScan(res);
+    say('Read '+res.clients.length+' client folders ('+a+' new) and the proposal numbers. Stored on this device only.');return true}
+  catch(e){say('Could not read that folder: '+e.message);return false}
+}
+$('cScan').onclick=async function(){await runScan(function(m){$('cScanHint').textContent=m});renderClients()};
+
+/* make client folder -> numbered project folder -> subfolders inside one area folder.
+   Looks folders up by exact name instead of listing them wherever it can: listing a folder
+   that holds Dropbox online-only files makes Dropbox start downloading them. */
+async function ensureTree(base,o,subs){
+  var res={path:[],clientCreated:false,projCreated:false,subsCreated:[],projExisted:false};
+  var cdir=null,cname=null,tries=[];
+  if(o.clientSavedName)tries.push(o.clientNo+' '+cleanName(o.clientSavedName));
+  tries.push(o.clientNo+' '+cleanName(o.clientName));
+  for(var i=0;i<tries.length&&!cdir;i++){var d=await childDir(base,tries[i],false);if(d){cdir=d;cname=tries[i]}}
+  if(!cdir){ /* names can differ between areas, so fall back to matching the number */
+    for await(var e of base.entries()){
+      if(e[1].kind==='directory'&&(e[0]===o.clientNo||e[0].indexOf(o.clientNo+' ')===0)){cdir=e[1];cname=e[0];break}
+    }
+  }
+  if(!cdir){cname=o.clientNo+' '+cleanName(o.clientName);cdir=await base.getDirectoryHandle(cname,{create:true});res.clientCreated=true}
+  res.path.push(cname);
+  var pdir=null,pname=o.projNo+' '+cleanName(o.projName),want=parseInt(o.projNo,10);
+  pdir=await childDir(cdir,pname,false);
+  if(!pdir&&(o.knownNums||[]).indexOf(want)>=0){ /* number is taken under a different name: find it */
+    for await(var f of cdir.entries()){
+      var m=/^(\d+)(?:\s|$)/.exec(f[0]);
+      if(f[1].kind==='directory'&&m&&parseInt(m[1],10)===want){pdir=f[1];pname=f[0];break}
+    }
+  }
+  if(pdir){res.projExisted=true}else{pdir=await cdir.getDirectoryHandle(pname,{create:true});res.projCreated=true}
+  res.path.push(pname);
+  for(var j=0;j<subs.length;j++){
+    var s=cleanName(subs[j]);if(!s)continue;
+    if(!(await childDir(pdir,s,false))){await pdir.getDirectoryHandle(s,{create:true});res.subsCreated.push(s)}
+  }
+  return res;
+}
+/* Proposals\YYYY Proposals\NN Name — numbered per year, not per client */
+async function ensureProposal(base,year,name){
+  var ydir=null,yname=null;
+  for await(var e of base.entries()){if(e[1].kind==='directory'&&e[0].indexOf(year+' Proposals')===0){ydir=e[1];yname=e[0];break}}
+  var created=false;
+  if(!ydir){yname=year+' Proposals';ydir=await base.getDirectoryHandle(yname,{create:true})}
+  var mx=0,found=null,want=cleanName(name).toLowerCase();
+  for await(var f of ydir.entries()){
+    var m=/^(\d+)(?:\s+(.*))?$/.exec(f[0]);if(!m||f[1].kind!=='directory')continue;
+    mx=Math.max(mx,parseInt(m[1],10));
+    if(m[2]&&m[2].trim().toLowerCase()===want)found=f[0];
+  }
+  var pname=found;
+  if(!found){pname=pad(mx+1,2)+' '+cleanName(name);await ydir.getDirectoryHandle(pname,{create:true});created=true}
+  return{path:[yname,pname],projCreated:created,projExisted:!created,clientCreated:false,subsCreated:[]};
+}
+async function createAreas(R,o){
+  var out=[];
+  var want=[['tech','Technical'],['draft','Drafting'],['data','Data Files']];
+  for(var i=0;i<want.length;i++){
+    var k=want[i][0],nm=want[i][1];if(!o.areas[k])continue;
+    var base=await areaDir(R,nm,false);
+    if(!base){out.push({area:nm,skipped:R.mode==='tech'?'choose the Johnson Engineering Group folder to include this one':'no "'+nm+'" folder found'});continue}
+    var r=await ensureTree(base,o,k==='data'?[]:(o.subs[k]||[]));r.area=nm;out.push(r);
+  }
+  if(o.areas.prop){
+    var pb=await areaDir(R,'Proposals',false);
+    if(!pb)out.push({area:'Proposals',skipped:R.mode==='tech'?'choose the Johnson Engineering Group folder to include this one':'no "Proposals" folder found'});
+    else{var pr=await ensureProposal(pb,o.propYear,o.propName||o.projName);pr.area='Proposals';out.push(pr)}
+  }
+  return out;
+}
+function nextProposalNo(year){var m=DB.scan&&DB.scan.proposals&&DB.scan.proposals[year];return m!=null?pad(m+1,2):''}
+function folderNames(P){
+  var c=(P.clientNo||'____')+' '+(cleanName(P.clientName)||'Client name');
+  var p=(P.projNo||'__')+' '+(cleanName(P.projName)||'Project name');
+  return{client:c,proj:p,path:'Technical\\'+c+'\\'+p};
+}
+/* what will be created, per ticked area */
+function plan(P){
+  var n=folderNames(P),out=[];
+  if(P.areas.tech)out.push({k:'tech',area:'Technical',path:'Technical\\'+n.client+'\\'+n.proj,subs:P.subs.tech});
+  if(P.areas.draft)out.push({k:'draft',area:'Drafting',path:'Drafting\\'+n.client+'\\'+n.proj,subs:P.subs.draft});
+  if(P.areas.data)out.push({k:'data',area:'Data Files',path:'Data Files\\'+n.client+'\\'+n.proj,subs:[]});
+  if(P.areas.prop){var nm=cleanName(P.propName||P.projName)||'Proposal name';out.push({k:'prop',area:'Proposals',path:'Proposals\\'+P.propYear+' Proposals\\'+(nextProposalNo(P.propYear)||'NN')+' '+nm,subs:[]})}
+  return out;
+}
+$('fCreate').onclick=async function(){
+  if(!hasFS&&!CL)return;
+  var miss=[];if(!S.clientNo)miss.push('client number');if(!S.clientName)miss.push('client name');if(!S.projNo)miss.push('project number');if(!S.projName)miss.push('project name');
+  if(miss.length){alert('Fill in the '+miss.join(', ')+' first.');return}
+  var pl=plan(S);if(!pl.length){alert('Tick at least one folder location first.');return}
+  var R=null;
+  if(!CL){R=await getRoot(false);if(!R)return}
+  var txt=pl.map(function(x){return x.path+(x.subs.length?'\n      + '+x.subs.join('\n      + '):'')}).join('\n\n');
+  if(!confirm('Create these folders in your Dropbox?\n\n'+txt+'\n\nAnything that already exists is left alone.'))return;
+  try{
+    var kc=findClientByNo(S.clientNo)||{};
+    var args={clientNo:S.clientNo,clientName:S.clientName,clientSavedName:kc.name,knownNums:kc.known||[],projNo:S.projNo,projName:S.projName,areas:S.areas,subs:S.subs,propYear:S.propYear,propName:S.propName};
+    var rep=CL?await apiCreateAreas(args):await createAreas(R,args);
+    var made=rep.filter(function(r){return !r.skipped}),skipped=rep.filter(function(r){return r.skipped});
+    if(made.length){S.folderDone={at:Date.now(),paths:made.map(function(r){return r.area+'\\'+r.path.join('\\')})};touch();persistNow()}
+    refreshFolder();
+    var msg=made.length+' location'+(made.length===1?'':'s')+' done.';
+    if(skipped.length)msg+=' Skipped: '+skipped.map(function(r){return r.area+' ('+r.skipped+')'}).join('; ');
+    if(skipped.length)alert(msg);else toast(msg);
+  }catch(e){alert('Could not create the folders: '+e.message)}
+};
+$('fRoot').addEventListener('click',async function(e){
+  if(e.target.id==='fChange'){var r=await getRoot(true);if(r)refreshFolder()}});
+function copyText(t,msg){
+  function done(){toast(msg||'Copied')}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,function(){fallback()})}else fallback();
+  function fallback(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');done()}catch(e){prompt('Copy this:',t)}a.remove()}
+}
+$('fCopy').onclick=function(){copyText(folderNames(S).proj,'Folder name copied')};
+$('fCopyPath').onclick=function(){copyText(plan(S).map(function(x){return x.path}).join('\n'),'Paths copied')};
+$('rCopyProj').onclick=function(){copyText((S.projNo||'')+'\t'+(S.projName||''),'Project line copied')};
+$('rCopyClient').onclick=function(){copyText((S.clientNo||'')+'\t'+(S.clientName||''),'Client line copied')};
+
+/* ---------- form rendering ---------- */
+function renderForm(){
+  document.querySelectorAll('#vForm [data-k]').forEach(function(el){
+    var k=el.getAttribute('data-k');
+    if(el.type==='checkbox')el.checked=!!S[k];else el.value=S[k]==null?'':S[k];
+  });
+  $('staffList').innerHTML=STAFF.concat(DB.settings.staff).map(function(n){return '<option value="'+esc(n)+'">'}).join('');
+  $('clientList').innerHTML=DB.clients.map(function(c){return '<option value="'+esc(c.name)+'">'+esc(c.no)+'</option>'}).join('');
+  renderContacts();renderLabor();renderCosts();renderMiles();renderSvc();renderAreas();renderFee();
+  $('billBox').classList.toggle('hidden',!!S.billSame);
+  $('bComplete').textContent=S.status==='complete'?'Reopen as draft':'Mark complete';
+  Array.prototype.forEach.call(document.querySelectorAll('input[data-email]'),function(i){i.classList.remove('bad')});
+}
+function renderContacts(){
+  $('contacts').innerHTML=S.contacts.map(function(c,i){
+    return '<div class="contact" data-i="'+i+'"><h3>Contact '+(i+1)+'</h3>'+
+    (S.contacts.length>1?'<button class="x rm" type="button" data-rmc="'+i+'" aria-label="Remove contact">×</button>':'')+
+    '<div class="grid">'+
+    '<div><label>Name</label><input data-c="name" value="'+esc(c.name)+'"></div>'+
+    '<div><label>Title / role</label><input data-c="title" value="'+esc(c.title)+'"></div>'+
+    '<div><label>Email</label><input data-c="email" data-email="1" type="email" inputmode="email" value="'+esc(c.email)+'"></div>'+
+    '<div><label>Phone</label><input data-c="phone" type="tel" inputmode="tel" value="'+esc(c.phone)+'"></div></div></div>';
+  }).join('');
+}
+function roleOptions(sel){
+  var names=DB.settings.roles.map(function(r){return r.name});
+  if(sel&&names.indexOf(sel)<0)names.push(sel);
+  return '<option value="">— role —</option>'+names.map(function(n){return '<option'+(n===sel?' selected':'')+'>'+esc(n)+'</option>'}).join('');
+}
+function renderLabor(){
+  $('labor').innerHTML=S.labor.map(function(l,i){
+    var ph=roleRate(l.role)?comma(roleRate(l.role),2):'';
+    return '<div class="lrow" data-i="'+i+'">'+
+    '<div class="c-desc"><label>Task / phase</label><input data-l="desc" value="'+esc(l.desc)+'" placeholder="e.g. Site visit"></div>'+
+    '<div class="c-role"><label>Role</label><select data-l="role">'+roleOptions(l.role)+'</select></div>'+
+    '<div><label>Hours</label><input data-l="hours" inputmode="decimal" value="'+esc(l.hours)+'"></div>'+
+    '<div><label>Rate</label><span class="m"><input data-l="rate" class="money" inputmode="decimal" value="'+esc(l.rate)+'" placeholder="'+ph+'"></span></div>'+
+    '<div><label>Amount</label><span class="m"><input data-l="amount" class="money" inputmode="decimal" value="'+esc(l.amount)+'"></span></div>'+
+    '<div class="c-x"><button class="x" type="button" data-rml="'+i+'" aria-label="Remove line">×</button></div></div>';
+  }).join('');
+}
+function renderCosts(){
+  $('costs').innerHTML=S.costs.length?S.costs.map(function(c,i){
+    return '<div class="lrow cost" data-i="'+i+'">'+
+    '<div><label>Type</label><select data-o="kind">'+KINDS.map(function(k){return '<option'+(k===c.kind?' selected':'')+'>'+k+'</option>'}).join('')+'</select></div>'+
+    '<div class="c-desc"><label>Description</label><input data-o="desc" value="'+esc(c.desc)+'" placeholder="e.g. Mileage, lab testing"></div>'+
+    '<div><label>Cost</label><span class="m"><input data-o="amount" class="money" inputmode="decimal" value="'+esc(c.amount)+'"></span></div>'+
+    '<div><label>Markup %</label><input data-o="markup" inputmode="decimal" value="'+esc(c.markup)+'" placeholder="0"></div>'+
+    '<div><label>Total</label><div class="calc" data-ototal>'+money(num(c.amount)*(1+num(c.markup)/100))+'</div></div>'+
+    '<div class="c-x"><button class="x" type="button" data-rmo="'+i+'" aria-label="Remove cost">×</button></div></div>';
+  }).join(''):'<div class="hint" style="margin:0 0 6px">None added.</div>';
+}
+function renderMiles(){
+  var fee=calc(S).total;
+  $('miles').innerHTML=S.milestones.map(function(m,i){
+    return '<div class="lrow ms" data-i="'+i+'">'+
+    '<div class="c-desc"><label>Milestone</label><input data-m="name" value="'+esc(m.name)+'" placeholder="e.g. On signing / Site visit complete / Final report"></div>'+
+    '<div><label>% of fee</label><input data-m="pct" inputmode="decimal" value="'+esc(m.pct)+'"></div>'+
+    '<div><label>Amount</label><div class="calc" data-mamt>'+money(fee*num(m.pct)/100)+'</div></div>'+
+    '<div class="c-x"><button class="x" type="button" data-rmm="'+i+'" aria-label="Remove milestone">×</button></div></div>';
+  }).join('');
+}
+function renderSvc(){
+  $('svcChips').innerHTML=S.services.map(function(n,i){return '<span class="chip on">'+esc(n)+' <button type="button" class="x" style="min-height:22px;width:22px;font-size:1rem" data-svcrm="'+i+'" aria-label="Remove">×</button></span>'}).join('')||'<span class="hint">None picked yet.</span>';
+}
+var svcHi=0;
+function customServices(){return(DB.settings.customServices||[]).map(function(n){return{n:n,g:'Your services',k:''}})}
+function svcOptions(q){
+  q=q.trim().toLowerCase();
+  var all=SERVICES.concat(customServices()).filter(function(s){return S.services.indexOf(s.n)<0});
+  if(!q)return all;
+  var words=q.split(/\s+/);
+  return all.filter(function(s){var hay=(s.n+' '+s.k+' '+s.g).toLowerCase();return words.every(function(w){return hay.indexOf(w)>=0})});
+}
+function svcExact(q){q=q.trim().toLowerCase();return SERVICES.concat(customServices()).some(function(s){return s.n.toLowerCase()===q})||S.services.some(function(n){return n.toLowerCase()===q})}
+function renderSvcList(){
+  var q=$('svcInput').value,opts=svcOptions(q),h='',g='';
+  var canNew=!!q.trim()&&!svcExact(q);
+  var total=opts.length+(canNew?1:0);if(svcHi>=total)svcHi=Math.max(0,total-1);
+  opts.forEach(function(s,i){
+    if(s.g!==g){g=s.g;h+='<div class="g">'+esc(g)+'</div>'}
+    h+='<div class="it'+(i===svcHi?' on':'')+'" data-pick="'+i+'">'+esc(s.n)+'</div>';
+  });
+  if(!opts.length&&!canNew)h+='<div class="none">'+(q.trim()?'Already added.':'Everything is already added.')+'</div>';
+  if(canNew)h+='<div class="it new'+(svcHi===opts.length?' on':'')+'" data-pick="new">＋ Add "'+esc(q.trim())+'" as a new service</div>';
+  $('svcList').innerHTML=h;$('svcList').classList.remove('hidden');$('svcInput').setAttribute('aria-expanded','true');
+  var on=$('svcList').querySelector('.it.on');if(on&&on.scrollIntoView)on.scrollIntoView({block:'nearest'});
+}
+function hideSvcList(){$('svcList').classList.add('hidden');$('svcInput').setAttribute('aria-expanded','false')}
+function pickSvc(){
+  var q=$('svcInput').value,opts=svcOptions(q),canNew=!!q.trim()&&!svcExact(q);
+  if(svcHi<opts.length)addSvc(opts[svcHi].n);
+  else if(canNew)addSvc(q);
+}
+$('svcInput').addEventListener('focus',function(){svcHi=0;renderSvcList()});
+$('svcInput').addEventListener('input',function(){svcHi=0;renderSvcList()});
+$('svcInput').addEventListener('blur',function(){setTimeout(hideSvcList,250)});
+$('svcInput').addEventListener('keydown',function(e){
+  var q=this.value,opts=svcOptions(q),total=opts.length+((q.trim()&&!svcExact(q))?1:0);
+  if(e.key==='ArrowDown'){e.preventDefault();svcHi=Math.min(svcHi+1,Math.max(0,total-1));renderSvcList()}
+  else if(e.key==='ArrowUp'){e.preventDefault();svcHi=Math.max(0,svcHi-1);renderSvcList()}
+  else if(e.key==='Enter'){e.preventDefault();pickSvc()}
+  else if(e.key==='Escape'){hideSvcList()}
+});
+$('svcList').addEventListener('mousedown',function(e){e.preventDefault()});
+$('svcList').addEventListener('click',function(e){
+  var it=e.target.closest('[data-pick]');if(!it)return;
+  var p=it.getAttribute('data-pick'),q=$('svcInput').value;
+  if(p==='new')addSvc(q);else addSvc(svcOptions(q)[+p].n);
+});
+var AREA_NOTE={tech:'documents, reports, notes',draft:'CAD and Revit files',data:'survey data and point files',prop:'proposal and estimate, numbered per year'};
+function renderAreas(){
+  var h='';
+  AREAS.forEach(function(a){
+    var k=a[0],on=!!S.areas[k];
+    h+='<div style="border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:10px">'+
+      '<label class="chip'+(on?' on':'')+'" style="display:inline-flex"><input type="checkbox" data-ar="'+k+'"'+(on?' checked':'')+'><span>'+a[1]+'</span></label>'+
+      '<span class="hint" style="margin-left:8px">'+AREA_NOTE[k]+'</span>';
+    if(on){
+      h+='<div class="path" data-path="'+k+'"></div>';
+      if(k==='tech'||k==='draft'){
+        h+='<div class="chips">'+(S.subs[k].map(function(s,i){return '<span class="chip on">'+esc(s)+' <button type="button" class="x" style="min-height:22px;width:22px;font-size:1rem" data-rms="'+k+':'+i+'" aria-label="Remove">×</button></span>'}).join('')||'<span class="hint">No subfolders.</span>')+'</div>'+
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input data-subadd="'+k+'" placeholder="Add a subfolder…" style="max-width:240px;min-height:36px">'+
+          '<button class="small" type="button" data-subaddbtn="'+k+'">Add</button>'+
+          (S.subAuto[k]?'':'<button class="small" type="button" data-subreset="'+k+'">Reset to suggested</button>')+'</div>';
+      }
+      if(k==='prop'){
+        h+='<div class="grid" style="margin-top:8px"><div><label>Proposal folder name</label><input data-k="propName" value="'+esc(S.propName)+'" placeholder="'+esc(S.projName||'Project name')+'"></div>'+
+          '<div><label>Year</label><input data-k="propYear" inputmode="numeric" value="'+esc(S.propYear)+'"></div></div>'+
+          '<div class="hint">The proposal number is the next one in that year\'s folder'+(nextProposalNo(S.propYear)?' (currently '+nextProposalNo(S.propYear)+')':' (read the Dropbox folder from Clients to preview it)')+'. If a proposal with this name already exists it is reused.</div>';
+      }
+    }
+    h+='</div>';
+  });
+  $('areas').innerHTML=h;updatePaths();
+}
+function updatePaths(){
+  plan(S).forEach(function(x){var el=document.querySelector('[data-path="'+x.k+'"]');if(el)el.textContent=x.path});
+}
+function setAutoSubs(){
+  ['tech','draft'].forEach(function(k){if(S.subAuto[k])S.subs[k]=autoSubs(S,k)});
+  if(S.subAuto.draft)S.areas.draft=S.subs.draft.length>0;
+}
+function renderFee(){
+  var fixed=S.fee==='fixed';
+  Array.prototype.forEach.call($('feeSeg').querySelectorAll('button'),function(b){var on=b.getAttribute('data-fee')===S.fee;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+  $('fixedBox').classList.toggle('hidden',!fixed);
+  $('tmBox').classList.toggle('hidden',fixed);
+  $('msBox').classList.toggle('hidden',!fixed);
+  $('feeHint').textContent=fixed?'One agreed price for the defined scope.':'Billed on hours worked at hourly rates; the estimate is a forecast.';
+  $('totalLabel').textContent=fixed?'Fixed fee':'Estimated total';
+}
+
+/* ---------- derived UI ---------- */
+function missingList(P){
+  var m=[];
+  if(!P.clientName.trim())m.push('client name');
+  if(!P.clientNo.trim())m.push('client JEG number');
+  if(!P.contacts.some(function(c){return c.name.trim()}))m.push('a main contact');
+  if(!P.projName.trim())m.push('project name');
+  if(!P.projNo.trim())m.push('project JEG number');
+  if(!P.projAddr.trim())m.push('project address');
+  if(!P.projDesc.trim())m.push('project description');
+  if(calc(P).total<=0)m.push(P.fee==='fixed'?'a fixed fee amount':'an estimate');
+  return m;
+}
+function derived(){
+  if(!S)return;
+  var P=S,c=calc(P),fixed=P.fee==='fixed';
+  $('ttl').textContent=P.projName?P.projName:'New Project';
+  $('hJob').innerHTML=P.clientNo||P.projNo?'Job reference: <b>'+esc(jobRef(P))+'</b>':'';
+  /* client hint */
+  var hc='',byNo=findClientByNo(P.clientNo),byName=findClientByName(P.clientName);
+  if(P.clientName&&byName&&!P.clientNo)hc='';
+  if(byName||byNo){var kc=byNo||byName;
+    hc=kc.name.toLowerCase()!==P.clientName.trim().toLowerCase()&&byNo&&!byName
+      ?'<span class="warn">'+esc(kc.no)+' is saved as "'+esc(kc.name)+'". It will be updated to "'+esc(P.clientName.trim())+'" when this saves.</span>'
+      :'<span class="ok">Known client: '+esc(kc.no+' '+kc.name)+'.</span>'}
+  else if(P.clientName.trim()&&!P.clientNo.trim()){hc='New client? Next free number is <b>'+nextClientNo()+'</b> <button type="button" id="useClientNo">Use it</button>'}
+  if(byNo&&byName&&byNo!==byName)hc='<span class="err">That number belongs to "'+esc(byNo.name)+'", not "'+esc(P.clientName)+'".</span>';
+  $('hClient').innerHTML=hc;
+  /* project number hint */
+  var hp='';
+  if(P.clientNo.trim()){
+    var used=usedProjNums(P.clientNo.trim(),P.id),pn=parseInt(P.projNo,10);
+    var kc2=findClientByNo(P.clientNo.trim()),blind=!DB.scan&&!used.length&&!(kc2&&kc2.known&&kc2.known.length);
+    var cn=P.clientNo.trim(),loading=false;
+    if(CL&&/^\d{4}$/.test(cn)&&!DBXC.numbers[cn]){
+      DBXC.numbers[cn]='loading';loading=true;
+      dbxLoadNumbers(cn).then(function(){DBXC.numbers[cn]=Date.now();derived()}).catch(function(){DBXC.numbers[cn]=Date.now()});
+    }else if(DBXC.numbers[cn]==='loading')loading=true;
+    if(loading)hp='Checking Dropbox for this client\'s project numbers…';
+    else if(blind)hp=hasFS?'Next number unknown: your Dropbox has not been read on this device yet. <button type="button" id="scanNow">Read Dropbox</button>'
+      :'No project numbers are on file for this client on this device. Type the number, or import the client list from your computer (Clients).';
+    else if(P.projNo&&used.indexOf(pn)>=0){
+      var rv=kc2&&kc2.reserved&&kc2.reserved[String(pn)],rvs=rv&&rv.id!==P.id?' (taken by '+esc(rv.by||'someone')+' for "'+esc(rv.name||'another project')+'")':'';
+      hp='<span class="err">Number '+esc(P.projNo)+' is already used for this client'+rvs+'.</span> Next free: <b>'+nextProjNum(P.clientNo.trim())+'</b> <button type="button" id="useProjNo">Use it</button>';
+    }
+    else if(false)hp='<span class="err">Number '+esc(P.projNo)+' is already used for this client.</span> Next free: <b>'+nextProjNum(P.clientNo.trim())+'</b> <button type="button" id="useProjNo">Use it</button>';
+    else if(!P.projNo)hp='Next free number: <b>'+nextProjNum(P.clientNo.trim())+'</b> <button type="button" id="useProjNo">Use it</button>';
+  }
+  $('hProj').innerHTML=hp;
+  /* folder */
+  refreshFolder();
+  /* estimate */
+  $('sumHours').textContent=comma(c.hrs,2).replace(/\.00$/,'');
+  $('sumLab').textContent=money(c.lab);$('sumOC').textContent=money(c.oc);$('sumCont').textContent=money(c.cont);$('sumEst').textContent=money(c.est);
+  $('totalAmt').textContent=money(c.total);
+  var th='';
+  if(fixed){
+    if(P.fixedFee!==''&&c.est>0&&Math.abs(c.est-c.total)>0.005)th='The breakdown builds to '+money(c.est)+'; the fixed fee is '+money(Math.abs(c.total-c.est))+(c.total>c.est?' higher.':' lower.');
+  }else if(num(P.nte)>0){th=c.total>num(P.nte)?'Over the not-to-exceed by '+money(c.total-num(P.nte))+'.':'Not-to-exceed '+money(num(P.nte))+' ('+money(num(P.nte)-c.total)+' headroom).'}
+  $('totalHint').textContent=th;$('totalHint').className='hint'+(/Over/.test(th)?' err':'');
+  /* row totals */
+  document.querySelectorAll('#costs .lrow').forEach(function(r){var x=S.costs[+r.getAttribute('data-i')];if(x)r.querySelector('[data-ototal]').textContent=money(num(x.amount)*(1+num(x.markup)/100))});
+  document.querySelectorAll('#miles .lrow').forEach(function(r){var x=S.milestones[+r.getAttribute('data-i')];if(x)r.querySelector('[data-mamt]').textContent=money(c.total*num(x.pct)/100)});
+  var pct=0;S.milestones.forEach(function(m){pct+=num(m.pct)});
+  $('msHint').textContent=pct?('Milestones total '+comma(pct,2).replace(/\.00$/,'')+'%'+(Math.abs(pct-100)>0.001?' — should add up to 100%.':'.')):'';
+  $('msHint').className='hint'+(pct&&Math.abs(pct-100)>0.001?' warn':'');
+  /* internal check */
+  var it='';
+  if(fixed&&c.total>0&&c.hrs>0){
+    var eff=c.total/c.hrs,avg=c.lab>0?c.lab/c.hrs:0;
+    it='<div>Fee ÷ estimated hours = <b>'+money(eff)+'/hr</b>.'+(avg?' Your lines average '+money(avg)+'/hr, so the fee covers '+comma(eff/avg*100,0)+'% of your hourly value.':'')+'</div>';
+  }
+  if(fixed&&c.est>0&&P.fixedFee!=='')it+='<div>Fee vs calculated estimate: '+(c.total>=c.est?'+':'−')+money(Math.abs(c.total-c.est)).replace('-','')+'</div>';
+  if(!fixed&&c.hrs>0)it='<div>Average labor rate '+money(c.lab/c.hrs)+'/hr over '+comma(c.hrs,2).replace(/\.00$/,'')+' hours.</div>';
+  $('internal').classList.toggle('hidden',!it);$('internalTxt').innerHTML=it;
+  /* missing banner */
+  var ms=missingList(P);
+  if(P.status!=='complete'&&ms.length&&!isEmpty(P)){$('missing').classList.remove('hidden');$('missing').innerHTML='Still needed to mark this complete: '+ms.join(', ')+'.'}
+  else $('missing').classList.add('hidden');
+}
+function refreshFolder(){
+  updatePaths();
+  $('fCreate').classList.toggle('hidden',!(hasFS||CL));
+  var hint='';
+  if(S.folderDone)hint='<span class="ok">Created '+fmtDate(S.folderDone.at)+': '+(S.folderDone.paths||[]).map(esc).join('<br>')+'</span>';
+  else if(!hasFS&&!CL)hint='Creating folders directly needs Chrome or Edge on a computer. Here, use <b>Copy folder name</b> or <b>Copy paths</b> and use them when you make the folders in Dropbox.';
+  $('fHint').innerHTML=hint;
+  $('fRoot').innerHTML=CL?'Folders are created through your Dropbox sign-in, so this works on the iPad too.':hasFS?'Folders are made inside your Dropbox <b>Johnson Engineering Group</b> folder, which you choose the first time. <button type="button" class="small" id="fChange">Choose a different folder</button>':'';
+}
+
+/* ---------- events ---------- */
+document.addEventListener('input',function(e){
+  var t=e.target;if(!S||!$('vForm').contains(t))return;
+  var k=t.getAttribute('data-k');
+  if(k){
+    if(t.id==='billSame'){return}
+    S[k]=t.value;
+    if(k==='clientName'){var c=findClientByName(t.value);if(c&&!lastClientFill||c&&lastClientFill!==c.no){fillFromClient(c)}}
+    if(k==='clientNo'){var c2=findClientByNo(t.value);if(c2&&!S.clientName){S.clientName=c2.name;$('clientName').value=c2.name}}
+    if(k==='fixedFee'||k==='contPct'||k==='nte')renderMiles();
+    touch();return;
+  }
+  var tr=t.closest('[data-i]');if(!tr)return;var i=+tr.getAttribute('data-i');
+  var a;
+  if((a=t.getAttribute('data-c'))){var v=t.value;
+    if(a==='phone')v=fmtPhone(v),t.value=v;S.contacts[i][a]=v;touch();return}
+  if((a=t.getAttribute('data-l'))){
+    var L=S.labor[i];L[a]=t.value;
+    if(a==='hours'||a==='rate'||a==='role'){autoAmt(L);tr.querySelector('[data-l=amount]').value=L.amount;
+      var ph=roleRate(L.role);tr.querySelector('[data-l=rate]').placeholder=ph?comma(ph,2):''}
+    renderMilesSoon();touch();return}
+  if((a=t.getAttribute('data-o'))){S.costs[i][a]=t.value;touch();return}
+  if((a=t.getAttribute('data-m'))){S.milestones[i][a]=t.value;touch();return}
+});
+var lastClientFill=null;
+function fillFromClient(c){
+  lastClientFill=c.no;
+  if(!S.clientNo){S.clientNo=c.no;$('clientNo').value=c.no}
+  if(!S.clientAddr.trim()&&c.addr){S.clientAddr=c.addr;$('clientAddr').value=c.addr}
+  if(!S.contacts.some(function(x){return x.name||x.email||x.phone})&&c.contacts&&c.contacts.length){S.contacts=JSON.parse(JSON.stringify(c.contacts));renderContacts()}
+  if(!S.projNo)S.projNo=nextProjNum(c.no),$('projNo').value=S.projNo;
+  toast('Filled in from saved client');
+}
+function renderMilesSoon(){}
+function fmtPhone(v){
+  if(!/^[\d\s().\-]*$/.test(v))return v;
+  var d=v.replace(/\D/g,'');if(d.length>10||d.length===0)return v;
+  if(d.length<=3)return d;
+  if(d.length<=6)return '('+d.slice(0,3)+') '+d.slice(3);
+  return '('+d.slice(0,3)+') '+d.slice(3,6)+'-'+d.slice(6);
+}
+document.addEventListener('change',function(e){
+  var t=e.target;if(!S)return;
+  if(t.id==='billSame'){S.billSame=t.checked;$('billBox').classList.toggle('hidden',t.checked);touch();return}
+  if(t.hasAttribute('data-ar')){S.areas[t.getAttribute('data-ar')]=t.checked;if(t.getAttribute('data-ar')==='draft')S.subAuto.draft=false;renderAreas();touch();return}
+});
+document.addEventListener('focusout',function(e){
+  var t=e.target;if(!S)return;
+  if(t.id==='clientNo'&&/^\d{1,3}$/.test(t.value.trim())){t.value=pad(t.value.trim(),4);S.clientNo=t.value;var c=findClientByNo(S.clientNo);if(c)fillFromClient(c);touch()}
+  if(t.id==='projNo'&&/^\d$/.test(t.value.trim())){t.value=pad(t.value.trim(),2);S.projNo=t.value;touch()}
+  if(t.hasAttribute&&t.hasAttribute('data-email')){var v=t.value.trim();t.classList.toggle('bad',!!v&&!/^\S+@\S+\.\S+$/.test(v))}
+  if(t.classList&&t.classList.contains('money')){
+    var raw=t.value.trim();if(raw===''||/[a-z]/i.test(raw))return;var n=num(raw);
+    t.value=comma(n,2);t.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+});
+document.addEventListener('focusin',function(e){var t=e.target;if(t.classList&&t.classList.contains('money')&&t.value)t.value=t.value.replace(/,/g,'')});
+
+document.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b||!S)return;
+  if(b.id==='scanNow'){var hp0=$('hProj');runScan(function(m){hp0.textContent=m}).then(function(ok){if(ok)derived()});return}
+  if(b.id==='useClientNo'){S.clientNo=nextClientNo();$('clientNo').value=S.clientNo;touch();return}
+  if(b.id==='useProjNo'){S.projNo=nextProjNum(S.clientNo.trim());$('projNo').value=S.projNo;touch();return}
+  if(b.hasAttribute('data-fee')){S.fee=b.getAttribute('data-fee');renderFee();renderMiles();touch();return}
+  if(b.hasAttribute('data-rmc')){S.contacts.splice(+b.getAttribute('data-rmc'),1);renderContacts();touch();return}
+  if(b.hasAttribute('data-rml')){S.labor.splice(+b.getAttribute('data-rml'),1);if(!S.labor.length)S.labor.push(blankLabor());renderLabor();touch();return}
+  if(b.hasAttribute('data-rmo')){S.costs.splice(+b.getAttribute('data-rmo'),1);renderCosts();touch();return}
+  if(b.hasAttribute('data-rmm')){S.milestones.splice(+b.getAttribute('data-rmm'),1);if(!S.milestones.length)S.milestones.push({name:'',pct:''});renderMiles();touch();return}
+  if(b.hasAttribute('data-svcrm')){removeSvc(+b.getAttribute('data-svcrm'));return}
+  if(b.hasAttribute('data-rms')){var q=b.getAttribute('data-rms').split(':');S.subs[q[0]].splice(+q[1],1);S.subAuto[q[0]]=false;renderAreas();touch();return}
+  if(b.hasAttribute('data-subaddbtn')){addSub(b.getAttribute('data-subaddbtn'));return}
+  if(b.hasAttribute('data-subreset')){var rk=b.getAttribute('data-subreset');S.subAuto[rk]=true;setAutoSubs();renderAreas();touch();return}
+});
+function focusLast(sel){var r=document.querySelectorAll(sel);if(r.length){var i=r[r.length-1].querySelector('input');if(i)i.focus()}}
+$('addContact').onclick=function(){S.contacts.push(blankContact());renderContacts();touch();focusLast('#contacts .contact')};
+$('addLabor').onclick=function(){S.labor.push(blankLabor());renderLabor();touch();focusLast('#labor .lrow')};
+$('addCost').onclick=function(){S.costs.push(blankCost());renderCosts();touch();focusLast('#costs .lrow')};
+$('addMs').onclick=function(){S.milestones.push({name:'',pct:''});renderMiles();touch();focusLast('#miles .lrow')};
+$('sameAddr').onclick=function(){S.projAddr=S.clientAddr;$('projAddr').value=S.projAddr;touch()};
+$('mapBtn').onclick=function(){
+  var a=S.projAddr.replace(/\s*\n\s*/g,', ').trim();if(!a){toast('Enter a project address first');return}
+  window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a),'_blank','noopener');
+};
+document.addEventListener('keydown',function(e){
+  var t=e.target;if(!S)return;
+  if(e.key==='Enter'&&t.hasAttribute('data-subadd')){e.preventDefault();addSub(t.getAttribute('data-subadd'))}
+});
+function addSub(k){var inp=document.querySelector('[data-subadd="'+k+'"]'),v=cleanName(inp.value);if(!v)return;
+  if(S.subs[k].map(function(x){return x.toLowerCase()}).indexOf(v.toLowerCase())<0)S.subs[k].push(v);
+  S.subAuto[k]=false;renderAreas();touch();var n=document.querySelector('[data-subadd="'+k+'"]');if(n)n.focus()}
+function addSvc(n){
+  n=String(n).trim().replace(/\s+/g,' ');if(!n)return;
+  if(S.services.some(function(x){return x.toLowerCase()===n.toLowerCase()}))return;
+  var canon=SERVICES.filter(function(s){return s.n.toLowerCase()===n.toLowerCase()})[0];
+  if(canon)n=canon.n;
+  else{DB.settings.customServices=DB.settings.customServices||[];if(DB.settings.customServices.indexOf(n)<0)DB.settings.customServices.push(n)}
+  S.services.push(n);setAutoSubs();renderSvc();renderAreas();touch();
+  $('svcInput').value='';svcHi=0;hideSvcList();
+}
+function removeSvc(i){S.services.splice(i,1);setAutoSubs();renderSvc();renderAreas();touch()}
+function toggleSvc(n){var i=S.services.indexOf(n);if(i<0)addSvc(n);else removeSvc(i)}
+
+/* roles dialog */
+function renderRoles(){
+  $('roleRows').innerHTML=DB.settings.roles.map(function(r,i){
+    return '<div class="lrow ms" style="grid-template-columns:2fr 1fr 36px" data-ri="'+i+'"><div><label>Role</label><input data-rn value="'+esc(r.name)+'"></div>'+
+    '<div><label>Rate / hr</label><span class="m"><input data-rr class="money" inputmode="decimal" value="'+esc(r.rate)+'"></span></div>'+
+    '<div><button class="x" type="button" data-rmr="'+i+'" aria-label="Remove role">×</button></div></div>';
+  }).join('');
+}
+$('rolesBtn').onclick=function(){renderRoles();$('ovRoles').classList.remove('hidden')};
+$('roleAdd').onclick=function(){DB.settings.roles.push({name:'',rate:''});renderRoles()};
+$('roleRows').addEventListener('input',function(e){var r=e.target.closest('[data-ri]');if(!r)return;var x=DB.settings.roles[+r.getAttribute('data-ri')];
+  if(e.target.hasAttribute('data-rn')){var old=x.name;x.name=e.target.value;if(S)S.labor.forEach(function(l){if(l.role===old)l.role=x.name})}
+  if(e.target.hasAttribute('data-rr'))x.rate=e.target.value});
+$('roleRows').addEventListener('click',function(e){var b=e.target.closest('[data-rmr]');if(!b)return;DB.settings.roles.splice(+b.getAttribute('data-rmr'),1);renderRoles()});
+$('roleDone').onclick=function(){
+  DB.settings.roles=DB.settings.roles.filter(function(r){return r.name.trim()});
+  $('ovRoles').classList.add('hidden');
+  if(S){S.labor.forEach(function(l){autoAmt(l)});renderLabor();touch()}
+  saveDB();
+};
+
+/* complete / save / share / print */
+$('bComplete').onclick=function(){
+  if(S.status==='complete'){S.status='draft'}
+  else{var m=missingList(S);if(m.length&&!confirm('Still missing: '+m.join(', ')+'.\n\nMark complete anyway?'))return;S.status='complete'}
+  $('bComplete').textContent=S.status==='complete'?'Reopen as draft':'Mark complete';
+  touch();persistNow();
+  toast(S.status==='complete'?'Marked complete. Find it under Complete on the dashboard.':'Back to draft.');
+};
+function fname(){return 'Project Kickoff - '+cleanName((S.clientNo&&S.projNo?S.clientNo+'-'+S.projNo+' ':'')+(S.projName||'New Project'))}
+$('bSave').onclick=function(){persistNow();download(fname()+'.json',JSON.stringify(S,null,2),'application/json')};
+function summaryText(P){
+  var c=calc(P),L=[];
+  L.push('NEW PROJECT KICKOFF — '+jobRef(P));
+  L.push('');L.push('Project: '+(P.projName||'')+(P.projNo?' ('+P.projNo+')':''));
+  if(P.projAddr)L.push('Address: '+P.projAddr.replace(/\s*\n\s*/g,', '));
+  if(P.services.length)L.push('Services: '+P.services.join('; '));
+  if(P.lead)L.push('Lead: '+P.lead);
+  if(P.startDate||P.dueDate)L.push('Dates: '+(P.startDate||'?')+' to '+(P.dueDate||'?'));
+  if(P.projDesc)L.push('Description: '+P.projDesc);
+  L.push('');L.push('Client: '+(P.clientName||'')+(P.clientNo?' ('+P.clientNo+')':''));
+  if(P.clientAddr)L.push('Address: '+P.clientAddr.replace(/\s*\n\s*/g,', '));
+  P.contacts.filter(function(x){return x.name||x.email||x.phone}).forEach(function(x){L.push('Contact: '+[x.name,x.title,x.email,x.phone].filter(Boolean).join(' · '))});
+  if(!P.billSame&&(P.billName||P.billEmail||P.billAddr))L.push('Billing: '+[P.billName,P.billEmail,P.billAddr.replace(/\s*\n\s*/g,', ')].filter(Boolean).join(' · '));
+  if(P.propStatus)L.push('Proposal/contract: '+P.propStatus);
+  if(P.poNo)L.push('PO/contract #: '+P.poNo);
+  L.push('');L.push('Fee type: '+(P.fee==='fixed'?'Fixed fee':'Time & material'));
+  L.push((P.fee==='fixed'?'Fixed fee: ':'Estimated total: ')+money(c.total));
+  if(P.fee!=='fixed'&&num(P.nte)>0)L.push('Not-to-exceed: '+money(num(P.nte)));
+  if(c.hrs>0)L.push('Estimated hours: '+comma(c.hrs,2).replace(/\.00$/,''));
+  if(P.fee==='fixed'){P.milestones.filter(function(m){return m.name||m.pct}).forEach(function(m){L.push('  Milestone: '+m.name+' — '+m.pct+'% ('+money(c.total*num(m.pct)/100)+')')})}
+  if(P.estNotes)L.push('Notes: '+P.estNotes);
+  L.push('');plan(P).forEach(function(x){L.push(x.area+' folder: '+x.path)});
+  return L.join('\n');
+}
+$('bShare').onclick=function(){
+  persistNow();var t=summaryText(S);
+  if(navigator.share){navigator.share({title:'Project kickoff '+jobRef(S),text:t}).catch(function(){})}
+  else copyText(t,'Summary copied. Paste it into an email.');
+};
+function kv(k,v){return v?'<b>'+esc(k)+'</b><div><pre>'+esc(v)+'</pre></div>':''}
+function buildPrint(){
+  if(!S)return;
+  var P=S,c=calc(P),fixed=P.fee==='fixed',h='';
+  h+='<div class="ph"><div><div class="eyebrow">Johnson Engineering Group</div><h1>New Project Kickoff</h1><div>'+esc(jobRef(P))+(P.status==='complete'?'':' · DRAFT')+'</div></div><img src="data:image/jpeg;base64,'+LOGO+'" alt=""></div>';
+  h+='<h2>Project</h2><div class="kv">'+kv('Project',P.projName)+kv('Project JEG #',P.projNo)+kv('Address',P.projAddr)+kv('Services',P.services.join('; '))+kv('Lead',P.lead)+
+     kv('Start',P.startDate)+kv('Target completion',P.dueDate)+kv('Proposal / contract',P.propStatus)+kv('PO / contract #',P.poNo)+kv('Description',P.projDesc)+'</div>';
+  h+='<h2>Client</h2><div class="kv">'+kv('Client',P.clientName)+kv('Client JEG #',P.clientNo)+kv('Address',P.clientAddr)+'</div>';
+  var cs=P.contacts.filter(function(x){return x.name||x.title||x.email||x.phone});
+  if(cs.length){h+='<table><thead><tr><th>Contact</th><th>Title</th><th>Email</th><th>Phone</th></tr></thead><tbody>';
+    cs.forEach(function(x){h+='<tr><td>'+esc(x.name)+'</td><td>'+esc(x.title)+'</td><td>'+esc(x.email)+'</td><td>'+esc(x.phone)+'</td></tr>'});h+='</tbody></table>'}
+  if(!P.billSame)h+='<div class="kv" style="margin-top:8px">'+kv('Billing contact',P.billName)+kv('Billing email',P.billEmail)+kv('Billing address',P.billAddr)+'</div>';
+  h+='<h2>Budget</h2><div class="kv"><b>Fee type</b><div>'+(fixed?'Fixed fee':'Time &amp; material')+'</div>'+(!fixed&&num(P.nte)?'<b>Not-to-exceed</b><div>'+money(num(P.nte))+'</div>':'')+
+     '<b>'+(fixed?'Fixed fee':'Estimated total')+'</b><div class="big">'+money(c.total)+'</div></div>';
+  var ls=P.labor.filter(function(l){return l.desc||l.hours||l.amount});
+  if(ls.length){h+='<table><thead><tr><th>Task / phase</th><th>Role</th><th class="r">Hours</th><th class="r">Rate</th><th class="r">Amount</th></tr></thead><tbody>';
+    ls.forEach(function(l){var r=lineRate(l);h+='<tr><td>'+esc(l.desc)+'</td><td>'+esc(l.role)+'</td><td class="r">'+esc(l.hours)+'</td><td class="r">'+(l.hours!==''&&r?money(r):'')+'</td><td class="r">'+(l.amount!==''?money(num(l.amount)):'')+'</td></tr>'});
+    h+='<tr><th colspan="2">Labor</th><th class="r">'+comma(c.hrs,2).replace(/\.00$/,'')+'</th><th></th><th class="r">'+money(c.lab)+'</th></tr></tbody></table>'}
+  var cos=P.costs.filter(function(x){return x.desc||x.amount});
+  if(cos.length){h+='<table><thead><tr><th>Other cost</th><th>Type</th><th class="r">Cost</th><th class="r">Markup</th><th class="r">Total</th></tr></thead><tbody>';
+    cos.forEach(function(x){h+='<tr><td>'+esc(x.desc)+'</td><td>'+esc(x.kind)+'</td><td class="r">'+money(num(x.amount))+'</td><td class="r">'+(num(x.markup)?esc(x.markup)+'%':'')+'</td><td class="r">'+money(num(x.amount)*(1+num(x.markup)/100))+'</td></tr>'});h+='</tbody></table>'}
+  if(num(P.contPct))h+='<div class="kv" style="margin-top:6px"><b>Contingency</b><div>'+esc(P.contPct)+'% ('+money(c.cont)+')</div></div>';
+  var ms=P.milestones.filter(function(m){return m.name||m.pct});
+  if(fixed&&ms.length){h+='<table><thead><tr><th>Billing milestone</th><th class="r">% of fee</th><th class="r">Amount</th></tr></thead><tbody>';
+    ms.forEach(function(m){h+='<tr><td>'+esc(m.name)+'</td><td class="r">'+esc(m.pct)+'</td><td class="r">'+money(c.total*num(m.pct)/100)+'</td></tr>'});h+='</tbody></table>'}
+  if(P.estNotes)h+='<h2>Estimate notes</h2><pre>'+esc(P.estNotes)+'</pre>';
+  h+='<h2>Folders</h2><div class="kv">'+plan(P).map(function(x){return '<b>'+esc(x.area)+'</b><div>'+esc(x.path)+(x.subs.length?'<br><span style="color:#6b8592">'+esc(x.subs.join(', '))+'</span>':'')+'</div>'}).join('')+'</div>';
+  h+='<div style="margin-top:18px;font-size:.78rem;color:#6b8592">Prepared '+fmtDate(Date.now())+(P.prepBy?' by '+esc(P.prepBy):'')+'</div>';
+  $('printView').innerHTML=h;
+}
+$('bPrint').onclick=function(){
+  var m=missingList(S);if(m.length&&!confirm('Still missing: '+m.join(', ')+'.\n\nPrint anyway?'))return;
+  buildPrint();window.print();
+};
+window.addEventListener('beforeprint',buildPrint);
+window.addEventListener('pagehide',function(){persistNow()});
+document.addEventListener('visibilitychange',function(){if(document.hidden)persistNow()});
+
+/* ---------- start ---------- */
+/* ==SHELL-TEAM-BEGIN== */
+/* ---------- team mode (Dropbox sign-in + shared projects) ---------- */
+/* Pasted into Project_Kickoff_Form.html by _tools/build-kickoff.js (between the SHELL-TEAM markers). Runs inside the app's main closure. */
+var CFG=window.TEAM_CONFIG||{mode:'off'};
+var TEAMON=CFG.mode==='dropbox'&&!!CFG.appKey&&/^https?:$/.test(location.protocol);
+var AUTH=null,CL=null,ACCT=null,CLIENTS_REV=null;
+var TIDX={sum:{},list:[],at:0,err:'',busy:false};     /* sum[id] = summary of the team's copy (cached on the device) */
+var TKEY='kickoff.teamsum';
+try{var tc=JSON.parse(localStorage.getItem(TKEY)||'null');if(tc&&tc.sum)TIDX.sum=tc.sum}catch(e){}
+function saveTeamCache(){try{localStorage.setItem(TKEY,JSON.stringify({sum:TIDX.sum}))}catch(e){}}
+function storeKey(){return ACCT?LS+':'+ACCT.id:LS}
+function acctMini(a){return a?{name:a.name,email:a.email}:null}
+function whoName(w){return w&&(w.name||w.email)?(w.name||w.email):'someone'}
+
+async function teamInit(){
+  if(!TEAMON)return;
+  AUTH=TEAM.createAuth({appKey:CFG.appKey,redirectUri:CFG.redirectUri||(location.origin+location.pathname),storage:localStorage,session:sessionStorage,
+    location:location,history:history,crypto:window.crypto,authBase:CFG.authBase,apiBase:CFG.apiBase});
+  try{ACCT=await AUTH.init()}catch(e){ACCT=null}
+  if(ACCT){
+    CL=TEAM.createClient({apiBase:CFG.apiBase,contentBase:CFG.contentBase,folder:CFG.folder,groupFolder:CFG.groupFolder,
+      rootNamespaceId:ACCT.rootNamespaceId,getToken:function(){return AUTH.getToken()}});
+    /* first sign-in on this device: the drafts made before signing in come along, once */
+    try{
+      var k=storeKey();
+      if(!localStorage.getItem(k)&&localStorage.getItem(LS)&&!localStorage.getItem('kickoff.adopted')){
+        localStorage.setItem(k,localStorage.getItem(LS));localStorage.setItem('kickoff.adopted',ACCT.id);
+      }
+    }catch(e){}
+  }
+}
+
+/* ----- account strip + sign-in screen ----- */
+function renderAcct(){
+  var el=$('acct');
+  if(!TEAMON){el.innerHTML='';return}
+  el.innerHTML=ACCT?'Signed in as <b>'+esc(ACCT.name||ACCT.email)+'</b> · <a href="#" id="acctOut">Sign out</a>':'Not signed in · <a href="#" id="acctIn">Sign in</a>';
+}
+function showSignIn(msg){
+  var err=AUTH&&AUTH.lastError();
+  $('signMsg').textContent=msg||(err?err.message:'');
+  $('ovSign').classList.remove('hidden');
+}
+document.addEventListener('click',function(e){
+  var t=e.target;
+  if(t.id==='acctOut'||t.id==='signOutBtn'){e.preventDefault();if(AUTH)AUTH.signOut().then(function(){location.reload()});return}
+  if(t.id==='acctIn'||t.id==='signInBtn'){e.preventDefault();if(AUTH)AUTH.signIn();return}
+  if(t.id==='signLocal'){e.preventDefault();try{sessionStorage.setItem('kickoff.local','1')}catch(x){}$('ovSign').classList.add('hidden');return}
+});
+
+/* ----- what the team has ----- */
+function summarize(p,meta){
+  var c=calc(p);
+  return{id:p.id,eTag:meta.eTag,jobRef:jobRef(p),projName:p.projName,clientName:p.clientName,fee:p.fee,total:c.total,status:p.status,
+    createdBy:p.createdBy||null,editedBy:p.editedBy||null,updated:p.updated||meta.modifiedAt,modifiedBy:meta.modifiedBy,modifiedAt:meta.modifiedAt};
+}
+async function refreshTeam(force){
+  if(!CL||TIDX.busy)return;
+  if(!force&&Date.now()-TIDX.at<30000)return;
+  TIDX.busy=true;TIDX.err='';if(view==='dash')renderDash();
+  try{
+    var list=await CL.listProjects();
+    TIDX.list=list;
+    var need=list.filter(function(m){var s=TIDX.sum[m.id];return !s||s.eTag!==m.eTag});
+    var i=0;
+    async function worker(){
+      while(i<need.length){
+        var m=need[i++],lp=byId(m.id);
+        try{
+          if(lp&&lp.remote&&lp.remote.rev===m.eTag)TIDX.sum[m.id]=summarize(lp,m);
+          else{var g=await CL.getProject(m.id);var tp=norm(Object.assign(blankProject(),g.project));tp.id=m.id;TIDX.sum[m.id]=summarize(tp,m)}
+        }catch(e){/* skip unreadable file */}
+      }
+    }
+    await Promise.all([worker(),worker(),worker(),worker()]);
+    var ids={};list.forEach(function(m){ids[m.id]=1});
+    Object.keys(TIDX.sum).forEach(function(k){if(!ids[k])delete TIDX.sum[k]});
+    TIDX.at=Date.now();saveTeamCache();
+    await syncClientsDown();
+    dbxLoadClientFolders().then(function(){if(view==='dash')renderDash()}).catch(function(){});
+  }catch(e){TIDX.err=e.code==='auth'?'Sign in again to see the team.':e.message}
+  TIDX.busy=false;
+  if(view==='dash')renderDash();
+  if(view==='form'&&S)renderTeamBanner();
+}
+function teamMeta(id){return TIDX.list.filter(function(m){return m.id===id})[0]||null}
+function teamState(p){
+  if(!CL)return null;
+  var m=teamMeta(p.id);
+  if(!p.remote)return 'local';
+  if(!m)return TIDX.at?'gone':'unknown';
+  var newer=m.eTag!==p.remote.rev;
+  if(p.dirty&&newer)return 'both';
+  if(p.dirty)return 'dirty';
+  return newer?'newer':'synced';
+}
+var STATE_TXT={local:'This device only',synced:'Shared · up to date',dirty:'Changes not uploaded',newer:'Newer on the team',both:'Both changed',gone:'Not on the team any more',unknown:'Shared',teamonly:'On the team'};
+
+/* ----- upload / download / conflicts ----- */
+function payloadOf(p){
+  var c=JSON.parse(JSON.stringify(p));delete c.remote;delete c.dirty;
+  if(!c.createdBy||!(c.createdBy.name||c.createdBy.email))c.createdBy=acctMini(ACCT);
+  c.editedBy={name:ACCT.name,email:ACCT.email,at:Date.now()};
+  return c;
+}
+async function syncUp(p,quiet){
+  if(!CL)return false;
+  if(p===S)persistNow();
+  if(isEmpty(p)){toast('Nothing to upload yet.');return false}
+  try{
+    var payload=payloadOf(p),meta=await CL.putProject(payload,p.remote?p.remote.rev:null);
+    p.createdBy=payload.createdBy;p.editedBy=payload.editedBy;p.remote={rev:meta.eTag};p.dirty=false;
+    reserveNumber(p);
+    TIDX.sum[p.id]=summarize(p,meta);TIDX.list=TIDX.list.filter(function(m){return m.id!==p.id}).concat([meta]);saveTeamCache();
+    saveDB();await syncClientsUp();
+    if(!quiet)toast('Uploaded to the team.');
+    return true;
+  }catch(e){
+    if(e.code==='conflict'){await resolveConflict(p);return false}
+    alert(e.code==='offline'?'You are offline. It stays on this device and can be uploaded later.':e.message);return false;
+  }finally{if(view==='dash')renderDash();if(view==='form'&&S===p)renderTeamBanner()}
+}
+function replaceProject(p,n){
+  Object.keys(p).forEach(function(k){delete p[k]});Object.assign(p,n);saveDB();
+  if(S===p){renderForm();derived()}
+}
+async function syncDown(p){
+  if(!CL)return false;
+  try{
+    var r=await CL.getProject(p.id),n=norm(Object.assign(blankProject(),r.project));
+    n.id=p.id;n.remote={rev:r.eTag};n.dirty=false;replaceProject(p,n);
+    var m=teamMeta(p.id);if(m){m.eTag=r.eTag}
+    TIDX.sum[p.id]=summarize(p,{eTag:r.eTag,modifiedBy:r.modifiedBy,modifiedAt:r.modifiedAt});saveTeamCache();
+    toast('Got the latest from the team.');return true;
+  }catch(e){alert(e.message);return false}
+  finally{if(view==='dash')renderDash();if(view==='form'&&S===p)renderTeamBanner()}
+}
+var conflictFor=null;
+function resolveConflict(p){
+  conflictFor=p;
+  var m=teamMeta(p.id),by=m&&m.modifiedBy&&(m.modifiedBy.name||m.modifiedBy.email);
+  $('cfText').innerHTML=esc(by||'Someone')+' changed <b>'+esc(p.projName||jobRef(p))+'</b> on the team'+(m&&m.modifiedAt?' ('+fmtDate(m.modifiedAt)+')':'')+', and you also have changes on this device. What should happen?';
+  $('ovConflict').classList.remove('hidden');
+  return new Promise(function(res){conflictFor.__done=res});
+}
+async function conflictChoice(kind){
+  var p=conflictFor;if(!p)return;
+  $('ovConflict').classList.add('hidden');var done=p.__done;delete p.__done;conflictFor=null;
+  try{
+    if(kind==='mine'){
+      var meta=await CL.listProjects().then(function(l){TIDX.list=l;return l.filter(function(x){return x.id===p.id})[0]});
+      p.remote={rev:meta?meta.eTag:null};await syncUp(p);
+    }else if(kind==='theirs'){await syncDown(p)}
+    else if(kind==='both'){
+      var copy=JSON.parse(JSON.stringify(p));copy.id=uid();copy.remote=null;copy.dirty=false;copy.projName=(copy.projName||'Project')+' (my version)';copy.projNo='';copy.updated=Date.now();
+      delete copy.__done;DB.projects.push(copy);saveDB();
+      await syncDown(p);toast('Kept both. Your version is saved as "'+copy.projName+'" with no project number yet.');
+    }
+  }finally{if(done)done();if(view==='dash')renderDash()}
+}
+$('cfMine').onclick=function(){conflictChoice('mine')};
+$('cfTheirs').onclick=function(){conflictChoice('theirs')};
+$('cfBoth').onclick=function(){conflictChoice('both')};
+$('cfCancel').onclick=function(){$('ovConflict').classList.add('hidden');if(conflictFor){var d=conflictFor.__done;delete conflictFor.__done;conflictFor=null;if(d)d()}};
+
+async function openTeamProject(id){
+  if(!CL)return;
+  try{
+    var r=await CL.getProject(id),n=norm(Object.assign(blankProject(),r.project));
+    n.id=id;n.remote={rev:r.eTag};n.dirty=false;
+    var ex=byId(id);if(ex){replaceProject(ex,n);openProject(ex)}else{DB.projects.push(n);saveDB();openProject(n)}
+  }catch(e){alert(e.message)}
+}
+async function deleteProject(p,sum){
+  var id=p?p.id:sum.id,name=(p?p.projName:sum.projName)||'this project';
+  var onTeam=!!(CL&&(sum||(p&&p.remote)));
+  if(!onTeam){if(p&&confirm('Delete "'+name+'"? This cannot be undone.')){DB.projects.splice(DB.projects.indexOf(p),1);saveDB();renderDash()}return}
+  $('delText').innerHTML='<b>'+esc(name)+'</b> is shared with the team.';
+  $('delLocal').classList.toggle('hidden',!p);
+  $('ovDel').classList.remove('hidden');
+  delCtx={p:p,id:id,name:name};
+}
+var delCtx=null;
+$('delLocal').onclick=function(){var c=delCtx;$('ovDel').classList.add('hidden');if(!c||!c.p)return;DB.projects.splice(DB.projects.indexOf(c.p),1);saveDB();renderDash();toast('Removed from this device. It is still on the team.')};
+$('delAll').onclick=async function(){
+  var c=delCtx;if(!c)return;$('ovDel').classList.add('hidden');
+  if(!confirm('Delete "'+c.name+'" for everyone? Dropbox keeps deleted files recoverable for a while, but the team will no longer see it.'))return;
+  try{await CL.removeProject(c.id,c.p&&c.p.remote?c.p.remote.rev:null);
+    if(c.p)DB.projects.splice(DB.projects.indexOf(c.p),1);
+    delete TIDX.sum[c.id];TIDX.list=TIDX.list.filter(function(m){return m.id!==c.id});saveDB();saveTeamCache();renderDash();toast('Deleted for everyone.')}
+  catch(e){alert(e.code==='conflict'?'Someone changed it since you last got it. Open it and use Get latest first.':e.message)}
+};
+$('delCancel').onclick=function(){$('ovDel').classList.add('hidden');delCtx=null};
+
+/* ----- shared client list + reserved project numbers ----- */
+function shareableClients(){
+  return DB.clients.filter(function(c){return c.addr||(c.contacts&&c.contacts.length)||(c.reserved&&Object.keys(c.reserved).length)})
+    .map(function(c){return{no:c.no,name:c.name,addr:c.addr||'',contacts:c.contacts||[],reserved:c.reserved||{},updated:c.updated||0}});
+}
+function mergeSharedClients(list){
+  var changed=false;
+  list.forEach(function(c){
+    var ex=findClientByNo(c.no)||findClientByName(c.name);
+    if(!ex){DB.clients.push({no:c.no,name:c.name,addr:c.addr||'',contacts:c.contacts||[],known:[],width:2,reserved:c.reserved||{},updated:c.updated||0});changed=true;return}
+    if((c.updated||0)>(ex.updated||0)){ex.name=c.name||ex.name;if(c.addr)ex.addr=c.addr;if(c.contacts&&c.contacts.length)ex.contacts=c.contacts;ex.updated=c.updated;changed=true}
+    var r=Object.assign({},ex.reserved||{},c.reserved||{});
+    if(JSON.stringify(r)!==JSON.stringify(ex.reserved||{})){ex.reserved=r;changed=true}
+  });
+  if(changed)saveDB();
+}
+async function syncClientsDown(){
+  var r=await CL.getClients();CLIENTS_REV=r.eTag;
+  if(r.data&&r.data.clients)mergeSharedClients(r.data.clients);
+}
+async function syncClientsUp(){
+  for(var attempt=0;attempt<2;attempt++){
+    try{CLIENTS_REV=await CL.putClients({version:1,clients:shareableClients()},CLIENTS_REV);return}
+    catch(e){if(e.code==='conflict'&&attempt===0){await syncClientsDown();continue}throw e}
+  }
+}
+function reserveNumber(p){
+  if(!p.clientNo||!p.projNo)return;
+  var c=findClientByNo(p.clientNo);if(!c)return;
+  var n=String(parseInt(p.projNo,10));if(n==='NaN')return;
+  c.reserved=c.reserved||{};
+  Object.keys(c.reserved).forEach(function(k){if(c.reserved[k].id===p.id&&k!==n)delete c.reserved[k]});
+  c.reserved[n]={id:p.id,name:p.projName,by:ACCT?ACCT.name:''};c.updated=Date.now();
+}
+
+/* ----- the company folder tree through the Dropbox API (works on the iPad too) ----- */
+var DBXC={tech:null,draft:null,at:0,numbers:{}};
+function dirOfNo(list,no){return(list||[]).filter(function(n){return n===no||n.indexOf(no+' ')===0})[0]||null}
+async function dbxLoadClientFolders(force){
+  if(!CL)return;
+  if(!force&&DBXC.tech&&Date.now()-DBXC.at<600000)return;
+  DBXC.tech=(await CL.listDirs(CL.group+'/Technical'))||[];
+  DBXC.draft=(await CL.listDirs(CL.group+'/Drafting'))||[];
+  DBXC.at=Date.now();
+  var changed=false;
+  DBXC.tech.forEach(function(n){
+    var m=/^(\d{4}) (.+)$/.exec(n);if(!m||m[1]==='0000'||/conflict/i.test(n))return;
+    var c=findClientByNo(m[1]);
+    if(!c){DB.clients.push({no:m[1],name:m[2].trim(),addr:'',contacts:[],known:[],width:2});changed=true}
+    else if(c.name!==m[2].trim()&&!c.updated){c.name=m[2].trim();changed=true}
+  });
+  if(changed)saveDB();
+}
+async function dbxLoadNumbers(no){
+  if(!CL)return;
+  await dbxLoadClientFolders();
+  var nums=[],width=2;
+  var areas=[['Technical',dirOfNo(DBXC.tech,no)],['Drafting',dirOfNo(DBXC.draft,no)]];
+  for(var i=0;i<areas.length;i++){
+    if(!areas[i][1])continue;
+    var subs=await CL.listDirs(CL.group+'/'+areas[i][0]+'/'+areas[i][1])||[];
+    subs.forEach(function(n){var m=/^(\d{1,3})(?:\s|$)/.exec(n);if(m){var v=parseInt(m[1],10);if(nums.indexOf(v)<0)nums.push(v);width=Math.max(width,m[1].length)}});
+  }
+  var c=findClientByNo(no);
+  if(!c){var nm=dirOfNo(DBXC.tech,no);c={no:no,name:nm?nm.replace(/^\d{4} /,''):'',addr:'',contacts:[],known:[],width:2};if(c.name)DB.clients.push(c);else c=null}
+  if(c){c.known=nums;c.width=width}
+  DB.scan=DB.scan||{proposals:{},at:Date.now()};DB.scan.at=Date.now();
+  saveDB();
+}
+async function dbxProposalNo(year){
+  var top=await CL.listDirs(CL.group+'/Proposals');if(!top)return null;
+  var yd=top.filter(function(n){return n.indexOf(year+' Proposals')===0})[0];if(!yd)return 0;
+  var kids=await CL.listDirs(CL.group+'/Proposals/'+yd)||[],mx=0;
+  kids.forEach(function(n){var m=/^(\d+)(?:\s|$)/.exec(n);if(m)mx=Math.max(mx,parseInt(m[1],10))});
+  return mx;
+}
+async function apiEnsureTree(areaName,o,subs){
+  var res={path:[],clientCreated:false,projCreated:false,subsCreated:[],projExisted:false};
+  var root=CL.group+'/'+areaName,dirs=await CL.listDirs(root);
+  if(dirs===null)return{skipped:'no "'+areaName+'" folder found'};
+  var cname=dirOfNo(dirs,o.clientNo);
+  if(!cname){cname=o.clientNo+' '+cleanName(o.clientName);await CL.createFolder(root+'/'+cname);res.clientCreated=true}
+  var pdirs=res.clientCreated?[]:(await CL.listDirs(root+'/'+cname)||[]),want=parseInt(o.projNo,10);
+  var pname=pdirs.filter(function(n){var m=/^(\d+)(?:\s|$)/.exec(n);return m&&parseInt(m[1],10)===want})[0];
+  if(pname)res.projExisted=true;
+  else{pname=o.projNo+' '+cleanName(o.projName);await CL.createFolder(root+'/'+cname+'/'+pname);res.projCreated=true}
+  res.path=[cname,pname];
+  for(var i=0;i<subs.length;i++){
+    var s=cleanName(subs[i]);if(!s)continue;
+    if((await CL.createFolder(root+'/'+cname+'/'+pname+'/'+s))==='created')res.subsCreated.push(s);
+  }
+  return res;
+}
+async function apiCreateAreas(o){
+  var out=[],want=[['tech','Technical'],['draft','Drafting'],['data','Data Files']];
+  for(var i=0;i<want.length;i++){
+    var k=want[i][0],nm=want[i][1];if(!o.areas[k])continue;
+    var r=await apiEnsureTree(nm,o,k==='data'?[]:(o.subs[k]||[]));
+    if(r.skipped)out.push({area:nm,skipped:r.skipped});else{r.area=nm;out.push(r)}
+  }
+  if(o.areas.prop){
+    var top=await CL.listDirs(CL.group+'/Proposals');
+    if(top===null)out.push({area:'Proposals',skipped:'no "Proposals" folder found'});
+    else{
+      var yd=top.filter(function(n){return n.indexOf(o.propYear+' Proposals')===0})[0],ycreated=false;
+      if(!yd){yd=o.propYear+' Proposals';await CL.createFolder(CL.group+'/Proposals/'+yd)}
+      var kids=await CL.listDirs(CL.group+'/Proposals/'+yd)||[],mx=0,found=null,wantName=cleanName(o.propName||o.projName).toLowerCase();
+      kids.forEach(function(n){var m=/^(\d+)(?:\s+(.*))?$/.exec(n);if(!m)return;mx=Math.max(mx,parseInt(m[1],10));if(m[2]&&m[2].trim().toLowerCase()===wantName)found=n});
+      var pn=found;
+      if(!found){pn=pad(mx+1,2)+' '+cleanName(o.propName||o.projName);await CL.createFolder(CL.group+'/Proposals/'+yd+'/'+pn)}
+      out.push({area:'Proposals',path:[yd,pn],projCreated:!found,projExisted:!!found,clientCreated:false,subsCreated:[]});
+    }
+  }
+  return out;
+}
+
+/* ----- form banner: who made it, and sync state ----- */
+function renderTeamBanner(){
+  var b=$('tBanner');
+  if(!CL||!S){b.classList.add('hidden');return}
+  var st=teamState(S),parts=[];
+  var cb=S.createdBy&&whoName(S.createdBy),eb=S.editedBy&&whoName(S.editedBy);
+  if(cb)parts.push('Created by <b>'+esc(cb)+'</b>');
+  if(eb&&S.editedBy.at)parts.push('last uploaded by <b>'+esc(eb)+'</b>, '+fmtDate(S.editedBy.at));
+  var h='<span class="badge '+(st==='synced'?'complete':'draft')+'" style="margin-left:0">'+esc(STATE_TXT[st]||'')+'</span> '+parts.join(' · ');
+  if(st==='local'||st==='dirty'||st==='gone')h+=' <button class="small" type="button" data-tup="1">Upload to team</button>';
+  if(st==='newer')h+=' <button class="small" type="button" data-tdown="1">Get latest</button>';
+  if(st==='both')h+=' <button class="small" type="button" data-tres="1">Resolve…</button>';
+  b.innerHTML=h;b.classList.remove('hidden');
+  $('bUpload').classList.toggle('hidden',false);
+  $('bUpload').textContent=st==='newer'?'Get latest':st==='both'?'Resolve…':'Upload to team';
+}
+$('tBanner').addEventListener('click',function(e){var b=e.target.closest('button');if(!b||!S)return;
+  if(b.hasAttribute('data-tup'))syncUp(S);else if(b.hasAttribute('data-tdown'))syncDown(S);else if(b.hasAttribute('data-tres'))resolveConflict(S)});
+$('bUpload').onclick=function(){
+  var st=teamState(S);
+  if(st==='newer')syncDown(S);else if(st==='both')resolveConflict(S);else syncUp(S);
+};
+$('dRefresh').onclick=function(){refreshTeam(true)};
+
+/* ==SHELL-TEAM-END== */
+(async function start(){
+  await teamInit();
+  DB=loadDB();
+  try{if(!localStorage.getItem(storeKey()))saveDB()}catch(e){}
+  renderAcct();
+  /* set only on the old address after the app moves: tells people where it went and how to bring their projects */
+  if(window.KICKOFF_MOVED){
+    var mv=$('movedBar');mv.classList.remove('hidden');
+    mv.innerHTML='<b>This app has moved.</b> The new address is <a href="'+esc(window.KICKOFF_MOVED)+'">'+esc(window.KICKOFF_MOVED)+'</a>. To bring your projects: tap <b>Back up</b> below, then open the new address and tap <b>Restore…</b> and choose that file.';
+  }
+  show('dash');
+  if(TEAMON&&!ACCT){var skip=false;try{skip=!!sessionStorage.getItem('kickoff.local')}catch(e){}if(!skip)showSignIn()}
+  if(CL)refreshTeam(true);
+})();
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){navigator.serviceWorker.register("sw.js").catch(function(){})}
+window.__kickoff={DB:function(){return DB},S:function(){return S},calc:calc,createAreas:createAreas,scanDropbox:scanDropbox,applyScan:applyScan,plan:plan,toggleSvc:toggleSvc,norm:norm,
+  nextProjNum:nextProjNum,nextClientNo:nextClientNo,summaryText:summaryText,missingList:missingList,openProject:openProject,show:show,persistNow:persistNow,buildPrint:buildPrint,folderNames:folderNames,mergeIn:mergeIn,blankProject:blankProject};
+})();
+</script>
+</body>
+</html>
