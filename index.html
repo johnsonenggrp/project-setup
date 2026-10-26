@@ -96,6 +96,8 @@ button:disabled{opacity:.5;cursor:default}
 .bar .wrap{display:flex;gap:8px;flex-wrap:wrap;padding:0}
 .bar .sp{flex:1}
 .status{font-size:.8rem;color:#6b8592;align-self:center}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.filters select{flex:1;min-width:130px;min-height:38px;padding:6px 8px;font-size:.88rem}
 .tabs{display:flex;gap:6px;margin:12px 0}
 .tabs button{border-radius:999px;min-height:38px}
 .tabs button.on{background:var(--ink);border-color:var(--ink);color:#fff}
@@ -170,6 +172,17 @@ button:disabled{opacity:.5;cursor:default}
   <div class="banner hidden" id="movedBar"></div>
   <div class="teambar hidden" id="teamBar"></div>
   <input id="dashQ" type="search" placeholder="Search by job number, project or client…">
+  <div class="filters hidden" id="dashFilters">
+    <select id="fBy" aria-label="Created by"></select>
+    <select id="fClient" aria-label="Client"></select>
+    <select id="fSvc" aria-label="Service"></select>
+    <select id="fSort" aria-label="Sort">
+      <option value="updated">Recently updated</option>
+      <option value="job">Job number</option>
+      <option value="client">Client A–Z</option>
+      <option value="created">Newest created</option>
+    </select>
+  </div>
   <div class="tabs" id="dashTabs">
     <button type="button" data-tab="all" class="on">All</button>
     <button type="button" data-tab="draft">Drafts</button>
@@ -225,6 +238,10 @@ button:disabled{opacity:.5;cursor:default}
         <div class="hint" id="hProj"></div></div>
       <div class="full hint" id="hJob" style="margin-top:-6px"></div>
       <div class="full">
+        <button class="small hidden" id="propPick" type="button">Start from a proposal…</button>
+        <div class="hint" id="propLink"></div>
+      </div>
+      <div class="full">
         <label for="projAddr">Project address</label>
         <textarea id="projAddr" data-k="projAddr" rows="3" placeholder="Street&#10;City, State ZIP"></textarea>
         <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
@@ -254,8 +271,10 @@ button:disabled{opacity:.5;cursor:default}
       <button class="primary" id="fCreate" type="button">Create folders in Dropbox</button>
       <button id="fCopy" type="button">Copy folder name</button>
       <button id="fCopyPath" type="button">Copy paths</button>
+      <button id="fSummary" type="button" class="hidden">Save summary to project folder</button>
     </div>
     <div class="hint" id="fHint"></div>
+    <div class="hint" id="sumHint"></div>
     <div class="hint" id="fRoot"></div>
     <h3>Number register</h3>
     <div class="hint" style="margin:0 0 6px">The master list is <b>Corporate\Finance\Client &amp; Project Numbers.xlsx</b>. Copy the line and paste it into the next free row (number, then name).</div>
@@ -286,6 +305,7 @@ button:disabled{opacity:.5;cursor:default}
 
   <section class="card">
     <h2><span class="num">6</span> Estimate</h2>
+    <div style="margin:-4px 0 10px"><button class="small" id="estFrom" type="button">Start from a template or past project…</button></div>
 
     <div id="fixedBox">
       <label for="fixedFee">Fixed fee ($)</label>
@@ -393,6 +413,19 @@ button:disabled{opacity:.5;cursor:default}
     <button id="delAll" type="button" style="color:var(--danger)">Delete for everyone</button>
     <button id="delCancel" type="button">Cancel</button>
   </div>
+</div></div>
+<div class="ov hidden" id="ovEst"><div class="box">
+  <h2 style="margin-bottom:6px">Start the estimate from…</h2>
+  <div class="tabs" style="margin:6px 0 10px"><button type="button" class="on" data-etab="tmpl">Templates</button><button type="button" data-etab="past">Past projects</button></div>
+  <div id="estBody"></div>
+  <div style="text-align:right;margin-top:12px"><button id="estClose" type="button">Close</button></div>
+</div></div>
+<div class="ov hidden" id="ovProp"><div class="box">
+  <h2 style="margin-bottom:6px">Start from a proposal</h2>
+  <div class="hint" style="margin:0 0 8px">Shows the two most recent years in the Proposals folder. Picking one fills in the project name and links the proposal.</div>
+  <input id="propQ" type="search" placeholder="Search proposals…" style="margin-bottom:8px">
+  <div id="propList"></div>
+  <div style="text-align:right;margin-top:12px"><button id="propClose" type="button">Close</button></div>
 </div></div>
 <div id="toast"></div>
 <div id="printView"></div>
@@ -526,6 +559,12 @@ var TEAM = (function () {
       async listDirs(path) {
         var entries; try { entries = await listAll(path); } catch (e) { if (e.code === 'missing') return null; throw e; }
         return entries.filter(function (x) { return x['.tag'] === 'folder'; }).map(function (x) { return x.name; });
+      },
+      // writes a small text file at an absolute path (the parent folder has to exist); overwrite=true replaces an existing one. Returns the new rev.
+      async uploadFile(path, text, overwrite) {
+        if (String(text).length > MAX_UPLOAD) throw TeamError('toolarge', 'That file is too large to upload.');
+        var r = await call('up', 'files/upload', { path: path, mode: overwrite ? { '.tag': 'overwrite' } : { '.tag': 'add' }, autorename: false, mute: true }, text);
+        return (await r.json()).rev;
       },
       // 'created' | 'exists'. The parent has to exist (Dropbox would create parents, but then a typo would silently build a new tree)
       async createFolder(path) {
@@ -705,7 +744,7 @@ function blankProject(){
     billSame:true,billName:'',billEmail:'',billAddr:'',
     areas:{tech:true,draft:true,data:false,prop:false},subs:{tech:autoSubs({services:[]},'tech'),draft:autoSubs({services:[]},'draft')},subAuto:{tech:true,draft:true},
     propName:'',propYear:String(new Date().getFullYear()),folderDone:null,
-    createdBy:ACCT?acctMini(ACCT):null,editedBy:null,remote:null,dirty:false,
+    createdBy:ACCT?acctMini(ACCT):null,editedBy:null,remote:null,dirty:false,proposal:null,
     fee:'fixed',fixedFee:'',nte:'',contPct:'',labor:[blankLabor()],costs:[],milestones:[{name:'',pct:''}],estNotes:''};
 }
 /* bring older saved projects up to the current shape */
@@ -719,6 +758,7 @@ function norm(p){
   else if(!p.subs)p.subs=b.subs;
   if(!p.subAuto||typeof p.subAuto!=='object')p.subAuto={tech:p.subAuto!==false,draft:true};
   if(p.propName==null)p.propName='';
+  if(p.proposal===undefined)p.proposal=null;
   if(p.remote===undefined)p.remote=null;
   if(p.dirty===undefined)p.dirty=false;
   if(p.createdBy===undefined)p.createdBy=null;
@@ -820,14 +860,16 @@ function openProject(p){S=p;renderForm();show('form');derived();if(CL)renderTeam
 function dashItems(){
   var items=DB.projects.map(function(p){
     return{id:p.id,p:p,sum:null,jobRef:jobRef(p),name:p.projName,client:p.clientName,status:p.status,fee:p.fee,total:calc(p).total,createdBy:p.createdBy,editedBy:p.editedBy,
-      updated:p.updated,state:CL?teamState(p):null,miss:missingList(p).length,folder:!!p.folderDone};
+      updated:p.updated,state:CL?teamState(p):null,miss:missingList(p).length,folder:!!p.folderDone,
+      services:p.services||[],clientNo:p.clientNo,projNo:p.projNo,createdAt:p.created||0};
   });
   if(CL){
     var have={};DB.projects.forEach(function(p){have[p.id]=1});
     Object.keys(TIDX.sum).forEach(function(id){
       if(have[id])return;var s=TIDX.sum[id];
       items.push({id:id,p:null,sum:s,jobRef:s.jobRef,name:s.projName,client:s.clientName,status:s.status,fee:s.fee,total:s.total,createdBy:s.createdBy,
-        editedBy:s.editedBy||(s.modifiedBy?{name:s.modifiedBy.name,at:s.modifiedAt}:null),updated:s.updated,state:'teamonly',miss:0,folder:false});
+        editedBy:s.editedBy||(s.modifiedBy?{name:s.modifiedBy.name,at:s.modifiedAt}:null),updated:s.updated,state:'teamonly',miss:0,folder:false,
+        services:s.services||[],clientNo:s.clientNo||'',projNo:s.projNo||'',createdAt:s.created||0});
     });
   }
   return items;
@@ -849,7 +891,8 @@ function whoLine(it){
 }
 function renderDash(){
   renderTeamBar();
-  var items=dashItems().sort(function(a,b){return b.updated-a.updated});
+  var all=dashItems();fillDashFilters(all);
+  var items=all.filter(dashPass);dashSort(items);
   var nd=items.filter(function(i){return i.status!=='complete'}).length,nc=items.length-nd;
   var tb=$('dashTabs').querySelectorAll('button');
   tb[0].textContent='All ('+items.length+')';tb[1].textContent='Drafts ('+nd+')';tb[2].textContent='Complete ('+nc+')';
@@ -860,7 +903,7 @@ function renderDash(){
     var hay=(i.jobRef+' '+i.name+' '+i.client+' '+(i.createdBy?(i.createdBy.name||''):'')).toLowerCase();
     return okT&&(!q||hay.indexOf(q)>=0);
   });
-  if(!list.length){$('dashList').innerHTML='<div class="empty">'+(items.length?'No projects match.':'No projects yet.<br>Tap <b>＋ New project</b> to start one.')+'</div>';return}
+  if(!list.length){$('dashList').innerHTML='<div class="empty">'+(all.length?'No projects match.':'No projects yet.<br>Tap <b>＋ New project</b> to start one.')+'</div>';return}
   $('dashList').innerHTML=list.map(function(i){
     var st=i.state,chip=st?'<span class="badge '+(st==='synced'||st==='teamonly'?'team':'warn')+'">'+esc(STATE_TXT[st]||'')+'</span>':'';
     var acts='';
@@ -1400,6 +1443,7 @@ function refreshFolder(){
   else if(!hasFS&&!CL)hint='Creating folders directly needs Chrome or Edge on a computer. Here, use <b>Copy folder name</b> or <b>Copy paths</b> and use them when you make the folders in Dropbox.';
   $('fHint').innerHTML=hint;
   $('fRoot').innerHTML=CL?'Folders are created through your Dropbox sign-in, so this works on the iPad too.':hasFS?'Folders are made inside your Dropbox <b>Johnson Engineering Group</b> folder, which you choose the first time. <button type="button" class="small" id="fChange">Choose a different folder</button>':'';
+  featureUI();
 }
 
 /* ---------- events ---------- */
@@ -1552,6 +1596,7 @@ function summaryText(P){
   if(!P.billSame&&(P.billName||P.billEmail||P.billAddr))L.push('Billing: '+[P.billName,P.billEmail,P.billAddr.replace(/\s*\n\s*/g,', ')].filter(Boolean).join(' · '));
   if(P.propStatus)L.push('Proposal/contract: '+P.propStatus);
   if(P.poNo)L.push('PO/contract #: '+P.poNo);
+  if(P.proposal)L.push('Proposal folder: '+P.proposal.path.split('/').join('\\'));
   L.push('');L.push('Fee type: '+(P.fee==='fixed'?'Fixed fee':'Time & material'));
   L.push((P.fee==='fixed'?'Fixed fee: ':'Estimated total: ')+money(c.total));
   if(P.fee!=='fixed'&&num(P.nte)>0)L.push('Not-to-exceed: '+money(num(P.nte)));
@@ -1567,12 +1612,12 @@ $('bShare').onclick=function(){
   else copyText(t,'Summary copied. Paste it into an email.');
 };
 function kv(k,v){return v?'<b>'+esc(k)+'</b><div><pre>'+esc(v)+'</pre></div>':''}
-function buildPrint(){
-  if(!S)return;
-  var P=S,c=calc(P),fixed=P.fee==='fixed',h='';
+function buildPrint(){if(S)$('printView').innerHTML=printHtml(S)}
+function printHtml(P){
+  var c=calc(P),fixed=P.fee==='fixed',h='';
   h+='<div class="ph"><div><div class="eyebrow">Johnson Engineering Group</div><h1>New Project Kickoff</h1><div>'+esc(jobRef(P))+(P.status==='complete'?'':' · DRAFT')+'</div></div><img src="data:image/jpeg;base64,'+LOGO+'" alt=""></div>';
   h+='<h2>Project</h2><div class="kv">'+kv('Project',P.projName)+kv('Project JEG #',P.projNo)+kv('Address',P.projAddr)+kv('Services',P.services.join('; '))+kv('Lead',P.lead)+
-     kv('Start',P.startDate)+kv('Target completion',P.dueDate)+kv('Proposal / contract',P.propStatus)+kv('PO / contract #',P.poNo)+kv('Description',P.projDesc)+'</div>';
+     kv('Start',P.startDate)+kv('Target completion',P.dueDate)+kv('Proposal / contract',P.propStatus)+kv('Proposal folder',P.proposal?P.proposal.path.split('/').join(' \\ '):'')+kv('PO / contract #',P.poNo)+kv('Description',P.projDesc)+'</div>';
   h+='<h2>Client</h2><div class="kv">'+kv('Client',P.clientName)+kv('Client JEG #',P.clientNo)+kv('Address',P.clientAddr)+'</div>';
   var cs=P.contacts.filter(function(x){return x.name||x.title||x.email||x.phone});
   if(cs.length){h+='<table><thead><tr><th>Contact</th><th>Title</th><th>Email</th><th>Phone</th></tr></thead><tbody>';
@@ -1594,7 +1639,7 @@ function buildPrint(){
   if(P.estNotes)h+='<h2>Estimate notes</h2><pre>'+esc(P.estNotes)+'</pre>';
   h+='<h2>Folders</h2><div class="kv">'+plan(P).map(function(x){return '<b>'+esc(x.area)+'</b><div>'+esc(x.path)+(x.subs.length?'<br><span style="color:#6b8592">'+esc(x.subs.join(', '))+'</span>':'')+'</div>'}).join('')+'</div>';
   h+='<div style="margin-top:18px;font-size:.78rem;color:#6b8592">Prepared '+fmtDate(Date.now())+(P.prepBy?' by '+esc(P.prepBy):'')+'</div>';
-  $('printView').innerHTML=h;
+  return h;
 }
 $('bPrint').onclick=function(){
   var m=missingList(S);if(m.length&&!confirm('Still missing: '+m.join(', ')+'.\n\nPrint anyway?'))return;
@@ -1605,6 +1650,253 @@ window.addEventListener('pagehide',function(){persistNow()});
 document.addEventListener('visibilitychange',function(){if(document.hidden)persistNow()});
 
 /* ---------- start ---------- */
+/* ==FEATURES-BEGIN== */
+/* ---------- features: dashboard filters, estimate templates / copy, summary file, proposals ---------- */
+/* Pasted into Project_Kickoff_Form.html by _tools/build-kickoff.js (between the FEATURES markers). Runs inside the app's main closure. */
+
+/* ===== dashboard filters and sorting ===== */
+var dashF={by:'',client:'',svc:'',sort:'updated'};
+try{Object.assign(dashF,JSON.parse(localStorage.getItem('kickoff.dashf')||'{}'))}catch(e){}
+function saveDashF(){try{localStorage.setItem('kickoff.dashf',JSON.stringify(dashF))}catch(e){}}
+function creatorName(i){return i.createdBy?(i.createdBy.name||i.createdBy.email||''):''}
+function clientKey(i){return i.client?(i.clientNo?i.clientNo+' '+i.client:i.client):''}
+function fillDashFilters(items){
+  var names={},clients={},svcs={};
+  items.forEach(function(i){
+    var n=creatorName(i);if(n)names[n]=1;
+    var k=clientKey(i);if(k)clients[k]=1;
+    (i.services||[]).forEach(function(s){svcs[s]=1});
+  });
+  function sel(id,first,list,cur,extra){
+    var el=$(id),h='<option value="">'+first+'</option>'+(extra||'')+list.map(function(v){return '<option'+(v===cur?' selected':'')+'>'+esc(v)+'</option>'}).join('');
+    el.innerHTML=h;el.value=cur||'';
+  }
+  var cl=Object.keys(clients).sort(),sv=Object.keys(svcs).sort(),nm=Object.keys(names).sort();
+  if(dashF.client&&!clients[dashF.client])dashF.client='';
+  if(dashF.svc&&!svcs[dashF.svc])dashF.svc='';
+  if(dashF.by&&dashF.by!=='@me'&&!names[dashF.by])dashF.by='';
+  sel('fClient','Any client',cl,dashF.client);
+  sel('fSvc','Any service',sv,dashF.svc);
+  sel('fBy','Anyone',nm.filter(function(n){return !ACCT||n!==ACCT.name}),dashF.by,ACCT?'<option value="@me"'+(dashF.by==='@me'?' selected':'')+'>Created by me</option>':'');
+  $('fBy').classList.toggle('hidden',!CL);
+  $('fSort').value=dashF.sort||'updated';
+  $('dashFilters').classList.toggle('hidden',items.length<2);
+}
+function dashPass(i){
+  if(dashF.by){
+    var n=creatorName(i),me=ACCT?ACCT.name:'';
+    if(dashF.by==='@me'){if(!(n===me||(!n&&i.p)))return false}
+    else if(n!==dashF.by)return false;
+  }
+  if(dashF.client&&clientKey(i)!==dashF.client)return false;
+  if(dashF.svc&&(i.services||[]).indexOf(dashF.svc)<0)return false;
+  return true;
+}
+function dashSort(items){
+  var k=dashF.sort;
+  items.sort(function(a,b){
+    if(k==='job'){
+      if((a.clientNo||'')!==(b.clientNo||''))return (a.clientNo||'')<(b.clientNo||'')?-1:1;
+      return (parseInt(a.projNo,10)||0)-(parseInt(b.projNo,10)||0);
+    }
+    if(k==='client')return (a.client||'').localeCompare(b.client||'')||((parseInt(a.projNo,10)||0)-(parseInt(b.projNo,10)||0));
+    if(k==='created')return (b.createdAt||0)-(a.createdAt||0);
+    return b.updated-a.updated;
+  });
+}
+['fBy','fClient','fSvc','fSort'].forEach(function(id){
+  $(id).addEventListener('change',function(){
+    dashF[id==='fBy'?'by':id==='fClient'?'client':id==='fSvc'?'svc':'sort']=this.value;saveDashF();renderDash();
+  });
+});
+
+/* ===== estimates: templates and copy from a past project ===== */
+var estTab='tmpl',estQ='';
+function estimateOf(p){return JSON.parse(JSON.stringify({fee:p.fee,fixedFee:p.fixedFee,nte:p.nte,contPct:p.contPct,labor:p.labor,costs:p.costs,milestones:p.milestones,estNotes:p.estNotes}))}
+function estimateEmpty(p){return !(calc(p).est>0||String(p.fixedFee||'')!==''||p.estNotes)}
+function estLines(e){return(e.labor||[]).filter(function(l){return l.desc||l.hours||l.amount}).length}
+function estSummary(e){
+  var c=calc({fee:e.fee||'fixed',fixedFee:e.fixedFee||'',nte:e.nte||'',contPct:e.contPct||'',labor:e.labor||[],costs:e.costs||[]});
+  return (e.fee==='tm'?'Time & material':'Fixed fee')+' · '+estLines(e)+' labor line'+(estLines(e)===1?'':'s')+(c.total>0?' · '+money(c.total):'');
+}
+function applyEstimate(src){
+  if(!S)return false;
+  if(!estimateEmpty(S)&&!confirm('Replace the estimate on this project with this one?'))return false;
+  var e=JSON.parse(JSON.stringify(src));
+  S.fee=e.fee||'fixed';S.fixedFee=e.fixedFee||'';S.nte=e.nte||'';S.contPct=e.contPct||'';
+  S.labor=(e.labor&&e.labor.length)?e.labor:[blankLabor()];S.costs=e.costs||[];
+  S.milestones=(e.milestones&&e.milestones.length)?e.milestones:[{name:'',pct:''}];S.estNotes=e.estNotes||'';
+  ['fixedFee','nte','contPct','estNotes'].forEach(function(k){$(k).value=S[k]});
+  renderLabor();renderCosts();renderMiles();renderFee();touch();
+  return true;
+}
+function templates(){return(DB.settings.templates||[]).filter(function(t){return !t.deleted}).sort(function(a,b){return a.name.localeCompare(b.name)})}
+function mergeTemplates(list){
+  var changed=false;DB.settings.templates=DB.settings.templates||[];
+  (list||[]).forEach(function(t){
+    var ex=DB.settings.templates.filter(function(x){return x.id===t.id})[0];
+    if(!ex){DB.settings.templates.push(t);changed=true}
+    else if((t.updated||0)>(ex.updated||0)){DB.settings.templates[DB.settings.templates.indexOf(ex)]=t;changed=true}
+  });
+  if(changed)saveDB();
+}
+function shareTemplates(){if(CL)syncClientsUp().catch(function(){})}
+function openEst(tab){estTab=tab||'tmpl';estQ='';renderEst();$('ovEst').classList.remove('hidden')}
+function renderEst(){
+  Array.prototype.forEach.call($('ovEst').querySelectorAll('[data-etab]'),function(b){b.classList.toggle('on',b.getAttribute('data-etab')===estTab)});
+  var h='';
+  if(estTab==='tmpl'){
+    h+='<div id="estList"></div>';
+    h+='<h3>Save this estimate as a template</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="tName" placeholder="Template name, e.g. Structural assessment, 1 barn" style="flex:1;min-width:200px"><button class="primary" id="tSave" type="button">Save</button></div>'+
+       '<div class="hint">'+(CL?'Templates are shared with the whole team.':'Templates stay on this device (and in the backup file).')+'</div>';
+  }else{
+    h+='<input id="pastQ" type="search" placeholder="Search past projects…" style="margin-bottom:8px"><div id="estList"></div>';
+  }
+  $('estBody').innerHTML=h;
+  renderEstList();
+}
+function renderEstList(){
+  var el=$('estList');if(!el)return;
+  if(estTab==='tmpl'){
+    var ts=templates();
+    el.innerHTML=ts.length?ts.map(function(t){
+      return '<div class="crow"><div class="nm"><b>'+esc(t.name)+'</b><div class="hint" style="margin:0">'+esc(estSummary(t.est))+(t.by?' · '+esc(t.by):'')+'</div></div>'+
+        '<button class="small primary" type="button" data-use-t="'+esc(t.id)+'">Use</button><button class="x" type="button" data-del-t="'+esc(t.id)+'" aria-label="Delete template">×</button></div>';
+    }).join(''):'<div class="hint">No templates yet. Build an estimate, then save it below.</div>';
+  }else{
+    var q=estQ.toLowerCase().trim();
+    var items=dashItems().filter(function(i){return (!S||i.id!==S.id)&&(i.total>0||(i.p&&estLines(i.p)))&&(!q||(i.jobRef+' '+i.name+' '+i.client).toLowerCase().indexOf(q)>=0)})
+      .sort(function(a,b){return b.updated-a.updated}).slice(0,40);
+    el.innerHTML=items.length?items.map(function(i){
+      return '<div class="crow"><div class="nm"><b>'+esc(i.jobRef)+' '+esc(i.name||'Untitled')+'</b><div class="hint" style="margin:0">'+esc(i.client||'')+(i.total>0?' · '+money(i.total):'')+'</div></div>'+
+        '<button class="small primary" type="button" '+(i.p?'data-use-p':'data-use-pt')+'="'+esc(i.id)+'">Use</button></div>';
+    }).join(''):'<div class="hint">No projects with an estimate'+(q?' match.':' yet.')+'</div>';
+  }
+}
+$('estFrom').onclick=function(){openEst('tmpl')};
+$('estClose').onclick=function(){$('ovEst').classList.add('hidden')};
+$('ovEst').addEventListener('click',function(e){
+  var t=e.target;
+  var tab=t.closest('[data-etab]');if(tab){estTab=tab.getAttribute('data-etab');estQ='';renderEst();return}
+  var ut=t.closest('[data-use-t]'),dt=t.closest('[data-del-t]'),up=t.closest('[data-use-p]'),upt=t.closest('[data-use-pt]');
+  if(ut){var tm=templates().filter(function(x){return x.id===ut.getAttribute('data-use-t')})[0];if(tm&&applyEstimate(tm.est)){$('ovEst').classList.add('hidden');toast('Estimate loaded from "'+tm.name+'".')}return}
+  if(dt){
+    var id=dt.getAttribute('data-del-t'),tx=(DB.settings.templates||[]).filter(function(x){return x.id===id})[0];
+    if(tx&&confirm('Delete the template "'+tx.name+'"'+(CL?' for everyone':'')+'?')){
+      if(CL){tx.deleted=true;tx.updated=Date.now()}else DB.settings.templates.splice(DB.settings.templates.indexOf(tx),1);
+      saveDB();shareTemplates();renderEstList();
+    }return;
+  }
+  if(up){var p=byId(up.getAttribute('data-use-p'));if(p&&applyEstimate(estimateOf(p))){$('ovEst').classList.add('hidden');toast('Estimate copied from '+jobRef(p)+'.')}return}
+  if(upt&&CL){
+    var tid=upt.getAttribute('data-use-pt');
+    CL.getProject(tid).then(function(r){var tp=norm(Object.assign(blankProject(),r.project));if(applyEstimate(estimateOf(tp))){$('ovEst').classList.add('hidden');toast('Estimate copied from '+jobRef(tp)+'.')}}).catch(function(err){alert(err.message)});
+    return;
+  }
+  if(t.id==='tSave'){
+    var name=$('tName').value.trim();
+    if(!name){$('tName').focus();return}
+    if(!S||estimateEmpty(S)){alert('This project has no estimate yet.');return}
+    DB.settings.templates=DB.settings.templates||[];
+    var ex=DB.settings.templates.filter(function(x){return !x.deleted&&x.name.toLowerCase()===name.toLowerCase()})[0];
+    if(ex&&!confirm('A template called "'+ex.name+'" exists. Replace it?'))return;
+    var rec={id:ex?ex.id:uid(),name:name,est:estimateOf(S),updated:Date.now(),by:ACCT?ACCT.name:''};
+    if(ex)DB.settings.templates[DB.settings.templates.indexOf(ex)]=rec;else DB.settings.templates.push(rec);
+    saveDB();shareTemplates();$('tName').value='';renderEstList();toast('Template saved.');
+  }
+});
+$('ovEst').addEventListener('input',function(e){if(e.target.id==='pastQ'){estQ=e.target.value;renderEstList()}});
+
+/* ===== the summary page that is saved into the project's Dropbox folder ===== */
+var SUMMARY_CSS='body{font-family:Arial,Helvetica,sans-serif;color:#31474f;max-width:820px;margin:24px auto;padding:0 16px;font-size:14px}'+
+ '.ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #36BAF2;padding-bottom:8px}.ph img{height:46px}'+
+ '.eyebrow{font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}h1{color:#36BAF2;margin:0;font-size:1.6rem}'+
+ 'h2{font-size:1rem;border-bottom:1px solid #d5dee2;padding-bottom:3px;margin:18px 0 6px}table{width:100%;border-collapse:collapse;margin-top:6px}'+
+ 'th,td{border-bottom:1px solid #d5dee2;padding:4px;text-align:left}td.r,th.r{text-align:right}.kv{display:grid;grid-template-columns:150px 1fr;gap:3px 10px}'+
+ 'pre{white-space:pre-wrap;font:inherit;margin:0}.big{font-size:1.2rem;font-weight:700;color:#1f8bc2}';
+function summaryFileHtml(P){
+  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Kickoff '+esc(jobRef(P))+'</title><style>'+SUMMARY_CSS+'</style></head><body>'+printHtml(P)+'</body></html>';
+}
+async function saveSummaryToDropbox(){
+  if(!CL||!S)return;
+  if(!S.clientNo||!S.projNo){alert('Fill in the client and project numbers first.');return}
+  var btn=$('fSummary');btn.disabled=true;
+  try{
+    await dbxLoadClientFolders(true);
+    var cdir=dirOfNo(DBXC.tech,S.clientNo);
+    if(!cdir){alert('This client has no Technical folder yet. Use Create folders in Dropbox first.');return}
+    var pdirs=(await CL.listDirs(CL.group+'/Technical/'+cdir))||[],want=parseInt(S.projNo,10);
+    var pname=pdirs.filter(function(n){var m=/^(\d+)(?:\s|$)/.exec(n);return m&&parseInt(m[1],10)===want})[0];
+    if(!pname){alert('The Technical project folder does not exist yet. Use Create folders in Dropbox first.');return}
+    var file='Project Kickoff '+jobRef(S)+'.html';
+    await CL.uploadFile(CL.group+'/Technical/'+cdir+'/'+pname+'/'+file,summaryFileHtml(S),true);
+    S.summarySavedAt=Date.now();touch();persistNow();featureUI();
+    toast('Saved "'+file+'" in '+cdir+' / '+pname);
+  }catch(e){alert('Could not save the summary: '+e.message)}
+  finally{btn.disabled=false}
+}
+$('fSummary').onclick=saveSummaryToDropbox;
+
+/* ===== start from a Proposals folder ===== */
+var PROPC={list:[],at:0,busy:false,q:''};
+function propDisplayName(folder){return String(folder).replace(/^\d+\s+(?:\d{4}\s+\d+\s+)?/,'').trim()}
+async function loadProposals(force){
+  if(!CL||PROPC.busy)return;
+  if(!force&&PROPC.list.length&&Date.now()-PROPC.at<600000)return;
+  PROPC.busy=true;
+  try{
+    var top=(await CL.listDirs(CL.group+'/Proposals'))||[],years=[];
+    top.forEach(function(n){var m=/^(\d{4}) Proposals$/.exec(n);if(m)years.push({y:m[1],dir:n})});
+    years.sort(function(a,b){return b.y-a.y});years=years.slice(0,2);
+    var out=[];
+    for(var i=0;i<years.length;i++){
+      var kids=(await CL.listDirs(CL.group+'/Proposals/'+years[i].dir))||[];
+      kids.forEach(function(n){var m=/^(\d+)/.exec(n);out.push({year:years[i].y,dir:years[i].dir,name:n,num:m?parseInt(m[1],10):0})});
+    }
+    out.sort(function(a,b){return b.year!==a.year?b.year-a.year:b.num-a.num});
+    PROPC.list=out;PROPC.at=Date.now();
+  }finally{PROPC.busy=false}
+}
+function renderPropList(){
+  var q=PROPC.q.toLowerCase().trim(),items=PROPC.list.filter(function(p){return !q||(p.year+' '+p.name).toLowerCase().indexOf(q)>=0}).slice(0,60);
+  $('propList').innerHTML=PROPC.busy?'<div class="hint">Reading the Proposals folder…</div>':items.length?items.map(function(p,i){
+    return '<div class="crow"><div class="nm"><b>'+esc(propDisplayName(p.name)||p.name)+'</b><div class="hint" style="margin:0">'+esc(p.year)+' Proposals · '+esc(p.name)+'</div></div><button class="small primary" type="button" data-pick-prop="'+PROPC.list.indexOf(p)+'">Use</button></div>';
+  }).join(''):'<div class="hint">No proposals found'+(q?' for that search.':'.')+'</div>';
+}
+$('propPick').onclick=function(){
+  if(!CL)return;
+  PROPC.q='';$('propQ').value='';$('ovProp').classList.remove('hidden');renderPropList();
+  loadProposals(false).then(renderPropList).catch(function(e){$('propList').innerHTML='<div class="hint err">'+esc(e.message)+'</div>'});
+};
+$('propClose').onclick=function(){$('ovProp').classList.add('hidden')};
+$('propQ').addEventListener('input',function(){PROPC.q=this.value;renderPropList()});
+$('propList').addEventListener('click',function(e){
+  var b=e.target.closest('[data-pick-prop]');if(!b||!S)return;
+  var it=PROPC.list[+b.getAttribute('data-pick-prop')];if(!it)return;
+  S.proposal={path:'Proposals/'+it.dir+'/'+it.name};
+  S.propName=propDisplayName(it.name);S.areas.prop=false;
+  if(!S.projName.trim()){S.projName=S.propName;$('projName').value=S.projName}
+  if(!S.propStatus){S.propStatus='Proposal sent';$('propStatus').value=S.propStatus}
+  $('ovProp').classList.add('hidden');renderAreas();touch();featureUI();
+  toast('Linked to the proposal "'+it.name+'".');
+});
+$('propLink').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b||!S)return;
+  if(b.hasAttribute('data-pcopy'))copyText(S.proposal.path.split('/').join('\\'),'Proposal path copied');
+  if(b.hasAttribute('data-punlink')){S.proposal=null;touch();featureUI()}
+});
+
+/* shows/hides the buttons that depend on being signed in, and the linked-proposal line */
+function featureUI(){
+  if(!S)return;
+  $('fSummary').classList.toggle('hidden',!CL);
+  $('propPick').classList.toggle('hidden',!CL);
+  $('propLink').innerHTML=S.proposal?'Linked proposal: <b>'+esc(S.proposal.path.split('/').join(' \\ '))+'</b> <button class="small" type="button" data-pcopy="1">Copy path</button> <button class="small" type="button" data-punlink="1">Unlink</button>':'';
+  var note=S.summarySavedAt?'Summary saved to the project folder '+fmtDate(S.summarySavedAt)+'.':'';
+  $('sumHint').textContent=CL?note:'';
+}
+
+/* ==FEATURES-END== */
 /* ==SHELL-TEAM-BEGIN== */
 /* ---------- team mode (Dropbox sign-in + shared projects) ---------- */
 /* Pasted into Project_Kickoff_Form.html by _tools/build-kickoff.js (between the SHELL-TEAM markers). Runs inside the app's main closure. */
@@ -1658,7 +1950,7 @@ document.addEventListener('click',function(e){
 /* ----- what the team has ----- */
 function summarize(p,meta){
   var c=calc(p);
-  return{id:p.id,eTag:meta.eTag,jobRef:jobRef(p),projName:p.projName,clientName:p.clientName,fee:p.fee,total:c.total,status:p.status,
+  return{v:2,id:p.id,eTag:meta.eTag,jobRef:jobRef(p),projName:p.projName,clientName:p.clientName,clientNo:p.clientNo,projNo:p.projNo,services:p.services||[],created:p.created||0,fee:p.fee,total:c.total,status:p.status,
     createdBy:p.createdBy||null,editedBy:p.editedBy||null,updated:p.updated||meta.modifiedAt,modifiedBy:meta.modifiedBy,modifiedAt:meta.modifiedAt};
 }
 async function refreshTeam(force){
@@ -1668,13 +1960,13 @@ async function refreshTeam(force){
   try{
     var list=await CL.listProjects();
     TIDX.list=list;
-    var need=list.filter(function(m){var s=TIDX.sum[m.id];return !s||s.eTag!==m.eTag});
+    var need=list.filter(function(m){var s=TIDX.sum[m.id];return !s||s.eTag!==m.eTag||s.v!==2});
     var i=0;
     async function worker(){
       while(i<need.length){
         var m=need[i++],lp=byId(m.id);
         try{
-          if(lp&&lp.remote&&lp.remote.rev===m.eTag)TIDX.sum[m.id]=summarize(lp,m);
+          if(lp&&lp.remote&&lp.remote.rev===m.eTag&&!lp.dirty)TIDX.sum[m.id]=summarize(lp,m);
           else{var g=await CL.getProject(m.id);var tp=norm(Object.assign(blankProject(),g.project));tp.id=m.id;TIDX.sum[m.id]=summarize(tp,m)}
         }catch(e){/* skip unreadable file */}
       }
@@ -1820,10 +2112,11 @@ function mergeSharedClients(list){
 async function syncClientsDown(){
   var r=await CL.getClients();CLIENTS_REV=r.eTag;
   if(r.data&&r.data.clients)mergeSharedClients(r.data.clients);
+  if(r.data&&r.data.templates)mergeTemplates(r.data.templates);
 }
 async function syncClientsUp(){
   for(var attempt=0;attempt<2;attempt++){
-    try{CLIENTS_REV=await CL.putClients({version:1,clients:shareableClients()},CLIENTS_REV);return}
+    try{CLIENTS_REV=await CL.putClients({version:1,clients:shareableClients(),templates:DB.settings.templates||[]},CLIENTS_REV);return}
     catch(e){if(e.code==='conflict'&&attempt===0){await syncClientsDown();continue}throw e}
   }
 }
