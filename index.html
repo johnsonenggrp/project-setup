@@ -184,6 +184,7 @@ button:disabled{opacity:.5;cursor:default}
     <h2>Clients</h2>
     <div class="hint" style="margin:0 0 10px">Clients are remembered from your projects, so picking one fills in its number, address and contacts. On a computer you can also read the client list and numbers straight from the Dropbox <b>Technical</b> folder.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="small" id="cAll" type="button">Check all numbers now</button>
       <button class="small" id="cScan" type="button">Read Dropbox Technical folder</button>
       <button class="small" id="cExport" type="button">Export client list</button>
       <button class="small" id="cImport" type="button">Import client list</button>
@@ -937,7 +938,9 @@ function renderClients(){
       '<button class="small" data-cnew="'+esc(c.no)+'" type="button">＋ Project</button>'+
       '<button class="x" data-cdel="'+esc(c.no)+'" type="button" aria-label="Delete">×</button></div>';
   }).join(''):'<div class="empty">No clients yet. They appear here as you save projects'+(hasFS?', or read them from the Dropbox Technical folder.':'.')+'</div>';
-  $('cScanHint').textContent=hasFS?'':'Reading the Dropbox folder needs Chrome or Edge on a computer. Export the list there and import it here.';
+  $('cScan').classList.toggle('hidden',!!CL);$('cAll').classList.toggle('hidden',!CL);
+  if(typeof ALLCHK!=='undefined'&&ALLCHK.running)$('cScanHint').textContent='Checking Dropbox… '+ALLCHK.done+' of '+ALLCHK.total+' clients';
+  else $('cScanHint').textContent=CL?'':hasFS?'':'Reading the Dropbox folder needs Chrome or Edge on a computer. Export the list there and import it here.';
   $('cScan').disabled=!hasFS;
 }
 $('cQ').addEventListener('input',renderClients);
@@ -1670,6 +1673,8 @@ async function refreshTeam(force){
     TIDX.at=Date.now();saveTeamCache();
     await syncClientsDown();
     dbxLoadClientFolders().then(function(){if(view==='dash')renderDash()}).catch(function(){});
+    /* look up every client's project numbers in the background, at most twice a day */
+    if(!DB.scan||!DB.scan.allAt||Date.now()-DB.scan.allAt>12*3600*1000)dbxLoadAllNumbers().catch(function(){});
   }catch(e){TIDX.err=e.code==='auth'?'Sign in again to see the team.':e.message}
   TIDX.busy=false;
   if(view==='dash')renderDash();
@@ -1860,6 +1865,28 @@ async function dbxProposalNo(year){
   kids.forEach(function(n){var m=/^(\d+)(?:\s|$)/.exec(n);if(m)mx=Math.max(mx,parseInt(m[1],10))});
   return mx;
 }
+var ALLCHK={running:false,done:0,total:0};
+async function dbxLoadAllNumbers(){
+  if(!CL||ALLCHK.running)return;
+  ALLCHK.running=true;ALLCHK.done=0;ALLCHK.total=0;
+  var tick=function(){if(view==='clients'){$('cScanHint').textContent=ALLCHK.running?'Checking Dropbox… '+ALLCHK.done+' of '+ALLCHK.total+' clients':'';renderClients()}};
+  try{
+    await dbxLoadClientFolders(true);
+    var seen={},list=[];
+    (DBXC.tech||[]).concat(DBXC.draft||[]).forEach(function(n){var m=/^(\d{4}) /.exec(n);if(m&&m[1]!=='0000'&&!seen[m[1]]){seen[m[1]]=1;list.push(m[1])}});
+    ALLCHK.total=list.length;var i=0;tick();
+    async function worker(){
+      while(i<list.length){
+        var no=list[i++];
+        try{await dbxLoadNumbers(no);DBXC.numbers[no]=Date.now()}catch(e){/* offline or one folder unreadable: skip it */}
+        ALLCHK.done++;if(ALLCHK.done%10===0)tick();
+      }
+    }
+    await Promise.all([worker(),worker(),worker(),worker()]);
+    DB.scan=DB.scan||{proposals:{},at:Date.now()};DB.scan.allAt=Date.now();saveDB();
+  }finally{ALLCHK.running=false;tick();if(view==='clients')toast('Checked all clients.')}
+}
+$('cAll').onclick=function(){if(CL&&!ALLCHK.running)dbxLoadAllNumbers().catch(function(){})};
 async function apiEnsureTree(areaName,o,subs){
   var res={path:[],clientCreated:false,projCreated:false,subsCreated:[],projExisted:false};
   var root=CL.group+'/'+areaName,dirs=await CL.listDirs(root);
