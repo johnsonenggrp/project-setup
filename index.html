@@ -661,6 +661,16 @@ function comma(n,d){return n.toLocaleString('en-US',{minimumFractionDigits:d,max
 function money(n){return (n<0?'-$':'$')+comma(Math.abs(n),2)}
 function r2(n){return Math.round(n*100)/100}
 function pad(n,w){var s=String(n);while(s.length<w)s='0'+s;return s}
+/* a client folder written with 3 digits (133 Kellys...) is the same client as 0133 */
+function padNo(raw){return pad(raw,4)}
+/* project numbers are written with at least 2 digits (01); the width follows the highest kept number (103 -> 3) */
+function numWidth(nums){var mx=0;nums.forEach(function(n){if(n>mx)mx=n});return Math.max(2,String(mx).length)}
+/* a project number far above the rest (171 next to 1 and 2) is almost certainly a stray folder or typo: keep it out of "next number" */
+function trimOutliers(nums){
+  var s=nums.slice().sort(function(a,b){return a-b}),ign=[];
+  while(s.length>1&&s[s.length-1]-s[s.length-2]>30)ign.push(s.pop());
+  return{nums:s,ignored:ign};
+}
 function uid(){return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function fmtDate(ts){return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show')},2600)}
@@ -993,10 +1003,10 @@ async function scanDropbox(R,onProgress){
     for await(var ent of dir.entries()){
       var name=ent[0],h=ent[1];
       if(h.kind!=='directory')continue;
-      var m=/^(\d{4}) (.+)$/.exec(name);
-      if(!m||m[1]==='0000'||/conflict/i.test(name))continue;
-      var c=map[m[1]];
-      if(!c){c=map[m[1]]={no:m[1],name:m[2].trim(),known:[],width:2};count++;if(onProgress)onProgress(count)}
+      var m=/^(\d{3,4}) (.+)$/.exec(name);
+      if(!m||padNo(m[1])==='0000'||/conflict/i.test(name))continue;
+      var cno=padNo(m[1]),c=map[cno];
+      if(!c){c=map[cno]={no:cno,name:m[2].trim(),known:[],width:2};count++;if(onProgress)onProgress(count)}
       else if(authoritative)c.name=m[2].trim();
       try{for await(var pe of h.entries()){
         if(pe[1].kind!=='directory')continue;
@@ -1018,9 +1028,9 @@ async function scanDropbox(R,onProgress){
 function applyScan(res){
   var added=0;
   res.clients.forEach(function(s){
-    var c=findClientByNo(s.no);
-    if(!c){DB.clients.push({no:s.no,name:s.name,addr:'',contacts:[],known:s.known,width:s.width,checked:true});added++}
-    else{c.known=s.known;c.width=s.width;c.name=s.name;c.checked=true}
+    var c=findClientByNo(s.no),tr=trimOutliers(s.known),w=numWidth(tr.nums);
+    if(!c){DB.clients.push({no:s.no,name:s.name,addr:'',contacts:[],known:tr.nums,ignored:tr.ignored,width:w,checked:true});added++}
+    else{c.known=tr.nums;c.ignored=tr.ignored;c.width=w;c.name=s.name;c.checked=true}
   });
   DB.scan={proposals:res.proposals||{},at:Date.now()};
   saveDB();return added;
@@ -1046,7 +1056,8 @@ async function ensureTree(base,o,subs){
   for(var i=0;i<tries.length&&!cdir;i++){var d=await childDir(base,tries[i],false);if(d){cdir=d;cname=tries[i]}}
   if(!cdir){ /* names can differ between areas, so fall back to matching the number */
     for await(var e of base.entries()){
-      if(e[1].kind==='directory'&&(e[0]===o.clientNo||e[0].indexOf(o.clientNo+' ')===0)){cdir=e[1];cname=e[0];break}
+      var em=/^(\d{3,4})(?:\s|$)/.exec(e[0]);
+      if(e[1].kind==='directory'&&em&&padNo(em[1])===o.clientNo){cdir=e[1];cname=e[0];break}
     }
   }
   if(!cdir){cname=o.clientNo+' '+cleanName(o.clientName);cdir=await base.getDirectoryHandle(cname,{create:true});res.clientCreated=true}
@@ -1347,6 +1358,7 @@ function derived(){
     }
     else if(false)hp='<span class="err">Number '+esc(P.projNo)+' is already used for this client.</span> Next free: <b>'+nextProjNum(P.clientNo.trim())+'</b> <button type="button" id="useProjNo">Use it</button>';
     else if(!P.projNo)hp='Next free number: <b>'+nextProjNum(P.clientNo.trim())+'</b> <button type="button" id="useProjNo">Use it</button>';
+    if(kc2&&kc2.ignored&&kc2.ignored.length)hp+=(hp?'<br>':'')+'<span class="hint">Ignored '+esc(kc2.ignored.join(', '))+' in Dropbox: far above this client\'s other numbers, so it looks like a typo or a stray folder.</span>';
   }
   $('hProj').innerHTML=hp;
   /* folder */
@@ -1826,7 +1838,8 @@ function reserveNumber(p){
 
 /* ----- the company folder tree through the Dropbox API (works on the iPad too) ----- */
 var DBXC={tech:null,draft:null,at:0,numbers:{}};
-function dirOfNo(list,no){return(list||[]).filter(function(n){return n===no||n.indexOf(no+' ')===0})[0]||null}
+/* finds the folder for client number `no`, whether it is written 0133 or 133 */
+function dirOfNo(list,no){return(list||[]).filter(function(n){var m=/^(\d{3,4})(?:\s|$)/.exec(n);return m&&padNo(m[1])===no})[0]||null}
 async function dbxLoadClientFolders(force){
   if(!CL)return;
   if(!force&&DBXC.tech&&Date.now()-DBXC.at<600000)return;
@@ -1835,9 +1848,9 @@ async function dbxLoadClientFolders(force){
   DBXC.at=Date.now();
   var changed=false;
   DBXC.tech.forEach(function(n){
-    var m=/^(\d{4}) (.+)$/.exec(n);if(!m||m[1]==='0000'||/conflict/i.test(n))return;
-    var c=findClientByNo(m[1]);
-    if(!c){DB.clients.push({no:m[1],name:m[2].trim(),addr:'',contacts:[],known:[],width:2});changed=true}
+    var m=/^(\d{3,4}) (.+)$/.exec(n);if(!m||padNo(m[1])==='0000'||/conflict/i.test(n))return;
+    var c=findClientByNo(padNo(m[1]));
+    if(!c){DB.clients.push({no:padNo(m[1]),name:m[2].trim(),addr:'',contacts:[],known:[],width:2});changed=true}
     else if(c.name!==m[2].trim()&&!c.updated){c.name=m[2].trim();changed=true}
   });
   if(changed)saveDB();
@@ -1853,8 +1866,8 @@ async function dbxLoadNumbers(no){
     subs.forEach(function(n){var m=/^(\d{1,3})(?:\s|$)/.exec(n);if(m){var v=parseInt(m[1],10);if(nums.indexOf(v)<0)nums.push(v);width=Math.max(width,m[1].length)}});
   }
   var c=findClientByNo(no);
-  if(!c){var nm=dirOfNo(DBXC.tech,no);c={no:no,name:nm?nm.replace(/^\d{4} /,''):'',addr:'',contacts:[],known:[],width:2};if(c.name)DB.clients.push(c);else c=null}
-  if(c){c.known=nums;c.width=width;c.checked=true}
+  if(!c){var nm=dirOfNo(DBXC.tech,no);c={no:no,name:nm?nm.replace(/^\d{3,4} /,''):'',addr:'',contacts:[],known:[],width:2};if(c.name)DB.clients.push(c);else c=null}
+  if(c){var tr=trimOutliers(nums);c.known=tr.nums;c.ignored=tr.ignored;c.width=numWidth(tr.nums);c.checked=true}
   DB.scan=DB.scan||{proposals:{},at:Date.now()};DB.scan.at=Date.now();
   saveDB();
 }
@@ -1873,7 +1886,7 @@ async function dbxLoadAllNumbers(){
   try{
     await dbxLoadClientFolders(true);
     var seen={},list=[];
-    (DBXC.tech||[]).concat(DBXC.draft||[]).forEach(function(n){var m=/^(\d{4}) /.exec(n);if(m&&m[1]!=='0000'&&!seen[m[1]]){seen[m[1]]=1;list.push(m[1])}});
+    (DBXC.tech||[]).concat(DBXC.draft||[]).forEach(function(n){var m=/^(\d{3,4}) /.exec(n);if(m&&padNo(m[1])!=='0000'&&!seen[padNo(m[1])]){seen[padNo(m[1])]=1;list.push(padNo(m[1]))}});
     ALLCHK.total=list.length;var i=0;tick();
     async function worker(){
       while(i<list.length){
