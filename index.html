@@ -267,7 +267,7 @@ button:disabled{opacity:.5;cursor:default}
       <div class="full"><label>Services on this project <span class="hint" style="font-weight:400">pick every kind of work that applies</span></label>
         <div class="chips" id="svcChips"></div>
         <div style="position:relative"><input id="svcInput" placeholder="Search, or type your own + Enter" autocomplete="off" role="combobox" aria-expanded="false"><div id="svcList" class="dd hidden"></div></div></div>
-      <div><label for="lead">Lead / project manager</label><input id="lead" data-k="lead" list="staffList" autocomplete="off"><datalist id="staffList"></datalist></div>
+      <datalist id="staffList"></datalist>
       <div><label for="startDate">Start date</label><input id="startDate" data-k="startDate" type="date"></div>
       <div><label for="dueDate">Target completion</label><input id="dueDate" data-k="dueDate" type="date"></div>
       <div><label for="propStatus">Proposal / contract</label>
@@ -870,7 +870,7 @@ function persistNow(){
   if(S){
     /* only a project that was actually edited updates the saved client, so opening an old project never undoes a client edit */
     if(!isEmpty(S)){if(DB.projects.indexOf(S)<0)DB.projects.push(S);if(touchedId===S.id)upsertClient(S)}
-    var u=S.lead,pb=S.prepBy;
+    var u='',pb=S.prepBy;
     if(pb)DB.settings.prepBy=pb;
     [u,pb].forEach(function(n){if(n&&STAFF.indexOf(n)<0&&DB.settings.staff.indexOf(n)<0)DB.settings.staff.push(n)});
   }
@@ -941,7 +941,7 @@ function renderDash(){
   var q=dashQ.toLowerCase().trim();
   var list=items.filter(function(i){
     var okT=dashTab==='all'||(dashTab==='draft'&&i.status!=='complete')||(dashTab==='complete'&&i.status==='complete');
-    var hay=(i.jobRef+' '+i.name+' '+i.client+' '+(i.createdBy?(i.createdBy.name||''):'')+' '+(i.lead||'')+' '+(i.services||[]).join(' ')).toLowerCase();
+    var hay=(i.jobRef+' '+i.name+' '+i.client+' '+(i.createdBy?(i.createdBy.name||''):'')+' '+(i.services||[]).join(' ')).toLowerCase();
     return okT&&(!q||hay.indexOf(q)>=0);
   });
   if(!list.length){$('dashList').innerHTML='<div class="empty">'+(all.length?'No projects match.':'No projects yet.<br>Tap <b>＋ New</b> to start one.')+'</div>';return}
@@ -1642,7 +1642,6 @@ function summaryText(P){
   L.push('');L.push('Project: '+(P.projName||'')+(P.projNo?' ('+P.projNo+')':''));
   if(P.projAddr)L.push('Address: '+P.projAddr.replace(/\s*\n\s*/g,', '));
   if(P.services.length)L.push('Services: '+P.services.join('; '));
-  if(P.lead)L.push('Lead: '+P.lead);
   if(P.startDate||P.dueDate)L.push('Dates: '+(P.startDate||'?')+' to '+(P.dueDate||'?'));
   if(P.projDesc)L.push('Description: '+P.projDesc);
   L.push('');L.push('Client: '+(P.clientName||'')+(P.clientNo?' ('+P.clientNo+')':''));
@@ -1671,7 +1670,7 @@ function buildPrint(){if(S)$('printView').innerHTML=printHtml(S)}
 function printHtml(P){
   var c=calc(P),fixed=P.fee==='fixed',h='';
   h+='<div class="ph"><div><div class="eyebrow">Johnson Engineering Group</div><h1>New Project Kickoff</h1><div>'+esc(jobRef(P))+(P.status==='complete'?'':' · DRAFT')+'</div></div><img src="data:image/jpeg;base64,'+LOGO+'" alt=""></div>';
-  h+='<h2>Project</h2><div class="kv">'+kv('Project',P.projName)+kv('Project JEG #',P.projNo)+kv('Address',P.projAddr)+kv('Services',P.services.join('; '))+kv('Lead',P.lead)+
+  h+='<h2>Project</h2><div class="kv">'+kv('Project',P.projName)+kv('Project JEG #',P.projNo)+kv('Address',P.projAddr)+kv('Services',P.services.join('; '))+
      kv('Start',P.startDate)+kv('Target completion',P.dueDate)+kv('Proposal / contract',P.propStatus)+kv('Proposal folder',P.proposal?P.proposal.path.split('/').join(' \\ '):'')+kv('PO / contract #',P.poNo)+kv('Description',P.projDesc)+'</div>';
   h+='<h2>Client</h2><div class="kv">'+kv('Client',P.clientName)+kv('Client JEG #',P.clientNo)+kv('Address',P.clientAddr)+'</div>';
   var cs=P.contacts.filter(function(x){return x.name||x.title||x.email||x.phone});
@@ -2061,13 +2060,13 @@ function csvCell(v){v=String(v==null?'':v);return /[",\r\n]/.test(v)?'"'+v.repla
 function exportCsv(){
   var items=dashItems().filter(dashPass);dashSort(items);
   var q=dashQ.toLowerCase().trim();
-  if(q)items=items.filter(function(i){return (i.jobRef+' '+i.name+' '+i.client+' '+(i.lead||'')+' '+(i.services||[]).join(' ')).toLowerCase().indexOf(q)>=0});
+  if(q)items=items.filter(function(i){return (i.jobRef+' '+i.name+' '+i.client+' '+(i.services||[]).join(' ')).toLowerCase().indexOf(q)>=0});
   if(!items.length){toast('Nothing to export with these filters.');return}
-  var head=['Job number','Client number','Client','Project number','Project','Status','Fee type','Amount','Lead','Created by','Created','Last updated','Target completion','Services','Team status'];
+  var head=['Job number','Client number','Client','Project number','Project','Status','Fee type','Amount','Created by','Created','Last updated','Target completion','Services','Team status'];
   var rows=items.map(function(i){
     var p=i.p,created=i.createdAt?new Date(i.createdAt).toISOString().slice(0,10):'';
     return [i.jobRef==='No number yet'?'':i.jobRef,i.clientNo||'',i.client||'',i.projNo||'',i.name||'',i.status==='complete'?'Complete':'Draft',i.fee==='fixed'?'Fixed fee':'Time & material',
-      i.total>0?i.total.toFixed(2):'',i.lead||'',creatorName(i),created,new Date(i.updated).toISOString().slice(0,10),i.due||'',(i.services||[]).join('; '),i.state?(STATE_TXT[i.state]||''):'']
+      i.total>0?i.total.toFixed(2):'',creatorName(i),created,new Date(i.updated).toISOString().slice(0,10),i.due||'',(i.services||[]).join('; '),i.state?(STATE_TXT[i.state]||''):'']
   });
   var text='\ufeff'+[head].concat(rows).map(function(r){return r.map(csvCell).join(',')}).join('\r\n')+'\r\n';
   download('Project Kickoff list '+stamp()+'.csv',text,'text/csv');
