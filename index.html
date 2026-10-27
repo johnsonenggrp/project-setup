@@ -188,7 +188,6 @@ button:disabled{opacity:.5;cursor:default}
     <select id="fBy" aria-label="Created by"></select>
     <select id="fClient" aria-label="Client"></select>
     <select id="fSvc" aria-label="Service"></select>
-    <select id="fLead" aria-label="Lead"></select>
     <select id="fSort" aria-label="Sort">
       <option value="updated">Recently updated</option>
       <option value="job">Job number</option>
@@ -368,8 +367,6 @@ button:disabled{opacity:.5;cursor:default}
     </div>
   </section>
 </div>
-
-<details class="card" id="histCard"><summary><b>History</b> <span class="hint" id="histCount"></span></summary><div id="histList" class="hint"></div></details>
 
 </main>
 
@@ -804,7 +801,6 @@ function norm(p){
   if(p.dirty===undefined)p.dirty=false;
   if(p.createdBy===undefined)p.createdBy=null;
   if(p.editedBy===undefined)p.editedBy=null;
-  if(!Array.isArray(p.log))p.log=[];
   if(!p.propYear)p.propYear=b.propYear;
   if(p.folderDone&&p.folderDone.path&&!p.folderDone.paths)p.folderDone.paths=[p.folderDone.path];
   ['contacts','labor','costs','milestones'].forEach(function(k){if(!Array.isArray(p[k]))p[k]=b[k]});
@@ -1236,7 +1232,7 @@ $('fCreate').onclick=async function(){
     var args={clientNo:S.clientNo,clientName:S.clientName,clientSavedName:kc.name,knownNums:kc.known||[],projNo:S.projNo,projName:S.projName,areas:S.areas,subs:S.subs,propYear:S.propYear,propName:S.propName};
     var rep=CL?await apiCreateAreas(args):await createAreas(R,args);
     var made=rep.filter(function(r){return !r.skipped}),skipped=rep.filter(function(r){return r.skipped});
-    if(made.length){S.folderDone={at:Date.now(),paths:made.map(function(r){return r.area+'\\'+r.path.join('\\')})};logEv(S,'Created folders ('+made.map(function(r){return r.area}).join(', ')+')');touch();persistNow()}
+    if(made.length){S.folderDone={at:Date.now(),paths:made.map(function(r){return r.area+'\\'+r.path.join('\\')})};touch();persistNow()}
     refreshFolder();
     var msg=made.length+' location'+(made.length===1?'':'s')+' done.';
     if(skipped.length)msg+=' Skipped: '+skipped.map(function(r){return r.area+' ('+r.skipped+')'}).join('; ');
@@ -1256,22 +1252,7 @@ $('rCopyProj').onclick=function(){copyText((S.projNo||'')+'\t'+(S.projName||''),
 $('rCopyClient').onclick=function(){copyText((S.clientNo||'')+'\t'+(S.clientName||''),'Client line copied')};
 
 /* ---------- form rendering ---------- */
-/* a short who-did-what trail that travels with the project */
-function logEv(p,text){
-  if(!p)return;
-  if(!Array.isArray(p.log))p.log=[];
-  p.log.push({at:Date.now(),by:ACCT?ACCT.name:'',t:text});
-  if(p.log.length>100)p.log.splice(0,p.log.length-100);
-  if(p===S&&view==='form')renderHist();
-}
-function renderHist(){
-  if(!S)return;
-  var L=(S.log||[]).slice().reverse();
-  $('histCount').textContent=L.length?'('+L.length+')':'';
-  $('histList').innerHTML=L.length?L.map(function(e){return esc(fmtDate(e.at))+' · '+esc(e.by||'You')+' · '+esc(e.t)}).join('<br>'):'Nothing recorded yet. Completing, creating folders and uploading are logged here.';
-}
 function renderForm(){
-  renderHist();
   document.querySelectorAll('#vForm [data-k]').forEach(function(el){
     var k=el.getAttribute('data-k');
     if(el.type==='checkbox')el.checked=!!S[k];else el.value=S[k]==null?'':S[k];
@@ -1646,7 +1627,6 @@ $('bComplete').onclick=function(){
   if(S.status==='complete'){S.status='draft'}
   else{var m=missingList(S);if(m.length&&!confirm('Still missing: '+m.join(', ')+'.\n\nMark complete anyway?'))return;S.status='complete'}
   $('bComplete').textContent=S.status==='complete'?'Reopen':'Complete';
-  logEv(S,S.status==='complete'?'Marked complete':'Reopened as draft');
   touch();persistNow();
   toast(S.status==='complete'?'Marked complete. Find it under Complete on the dashboard.':'Back to draft.');
   /* the summary page belongs in the project folder once the project is signed off */
@@ -1751,8 +1731,6 @@ function fillDashFilters(items){
   if(dashF.client&&!clients[dashF.client])dashF.client='';
   if(dashF.svc&&!svcs[dashF.svc])dashF.svc='';
   if(dashF.by&&dashF.by!=='@me'&&!names[dashF.by])dashF.by='';
-  if(dashF.lead&&!leads[dashF.lead])dashF.lead='';
-  sel('fLead','Any lead',Object.keys(leads).sort(),dashF.lead);
   sel('fClient','Any client',cl,dashF.client);
   sel('fSvc','Any service',sv,dashF.svc);
   sel('fBy','Anyone',nm.filter(function(n){return !ACCT||n!==ACCT.name}),dashF.by,ACCT?'<option value="@me"'+(dashF.by==='@me'?' selected':'')+'>Created by me</option>':'');
@@ -1768,7 +1746,6 @@ function dashPass(i){
   }
   if(dashF.client&&clientKey(i)!==dashF.client)return false;
   if(dashF.svc&&(i.services||[]).indexOf(dashF.svc)<0)return false;
-  if(dashF.lead&&i.lead!==dashF.lead)return false;
   return true;
 }
 function fmtShort(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
@@ -1794,7 +1771,7 @@ function dashSort(items){
     return b.updated-a.updated;
   });
 }
-var DASH_KEY={fBy:'by',fClient:'client',fSvc:'svc',fLead:'lead',fSort:'sort'};
+var DASH_KEY={fBy:'by',fClient:'client',fSvc:'svc',fSort:'sort'};
 Object.keys(DASH_KEY).forEach(function(id){
   $(id).addEventListener('change',function(){dashF[DASH_KEY[id]]=this.value;saveDashF();renderDash()});
 });
@@ -1919,7 +1896,7 @@ async function saveSummaryToDropbox(){
     if(!pname){alert('The Technical project folder does not exist yet. Use Create folders in Dropbox first.');return}
     var file='Project Kickoff '+jobRef(S)+'.html';
     await CL.uploadFile(CL.group+'/Technical/'+cdir+'/'+pname+'/'+file,summaryFileHtml(S),true);
-    S.summarySavedAt=Date.now();logEv(S,'Saved summary to the project folder');touch();persistNow();featureUI();
+    S.summarySavedAt=Date.now();touch();persistNow();featureUI();
     toast('Saved "'+file+'" in '+cdir+' / '+pname);
   }catch(e){alert('Could not save the summary: '+e.message)}
   finally{btn.disabled=false}
@@ -2222,7 +2199,6 @@ async function syncUp(p,quiet){
   if(p===S)persistNow();
   if(isEmpty(p)){toast('Nothing to upload yet.');return false}
   try{
-    logEv(p,'Uploaded to the team');
     var payload=payloadOf(p),meta=await CL.putProject(payload,p.remote?p.remote.rev:null);
     p.createdBy=payload.createdBy;p.editedBy=payload.editedBy;p.remote={rev:meta.eTag};p.dirty=false;
     reserveNumber(p);
