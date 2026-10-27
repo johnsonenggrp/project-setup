@@ -131,7 +131,7 @@ button:disabled{opacity:.5;cursor:default}
 @media (max-width:640px){
   h1{font-size:1.35rem}
   main.wrap{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
-  #bPrint,#bShare,#bSave,#dBackup,#dRestore{display:none}
+  #bPrint,#bShare,#bSave,#dBackup,#dRestore,#dCsv{display:none}
   .bar .more{display:inline-block;font-size:1.3rem;padding:0 14px}
   .bar .sp{display:none}
   .bar button{padding:0 11px;font-size:.92rem}
@@ -175,6 +175,7 @@ button:disabled{opacity:.5;cursor:default}
     <div class="status" id="acct"></div>
   </div>
 </header>
+<div class="banner hidden" id="offlineBar" style="margin:0;border-radius:0;text-align:center">You are offline. Changes are saved on this device and can be uploaded when you are back online.</div>
 
 <main class="wrap">
 
@@ -202,6 +203,7 @@ button:disabled{opacity:.5;cursor:default}
     <button type="button" data-tab="complete">Complete</button>
   </div>
   <div id="dashList"></div>
+  <div class="hint" id="trashLink" style="text-align:center;margin-top:10px"></div>
 </div>
 
 <!-- ============ CLIENTS ============ -->
@@ -375,10 +377,11 @@ button:disabled{opacity:.5;cursor:default}
   <button id="dClients" type="button">Clients</button>
   <span class="sp"></span>
   <button id="dRefresh" type="button" class="hidden" title="Check the team for changes" aria-label="Refresh">⟳</button>
+  <button id="dCsv" type="button" title="Download the list you are looking at as a spreadsheet file">Export list</button>
   <button id="dBackup" type="button">Back up</button>
   <button id="dRestore" type="button">Restore…</button>
   <button type="button" class="more" id="dMore" data-more="dMenu" aria-label="More">⋯</button>
-  <div class="menu hidden" id="dMenu"><button type="button" data-proxy="dBackup">Back up</button><button type="button" data-proxy="dRestore">Restore…</button></div>
+  <div class="menu hidden" id="dMenu"><button type="button" data-proxy="dCsv">Export list</button><button type="button" data-proxy="dBackup">Back up</button><button type="button" data-proxy="dRestore">Restore…</button></div>
   <input type="file" id="dFile" accept=".json,application/json" class="hidden">
 </div></div>
 <div class="bar hidden" id="barClients"><div class="wrap">
@@ -449,6 +452,12 @@ button:disabled{opacity:.5;cursor:default}
   <button class="small" id="ceAddContact" type="button">＋ Add contact</button>
   <div class="hint">New projects for this client start with these details. Projects that already exist keep their own.</div>
   <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button id="ceCancel" type="button">Cancel</button><button class="primary" id="ceSave" type="button">Save</button></div>
+</div></div>
+<div class="ov hidden" id="ovTrash"><div class="box">
+  <h2 style="margin-bottom:6px">Recently deleted</h2>
+  <div class="hint" style="margin:0 0 8px">Deleted projects stay here for 30 days. Restoring one puts it back on this device as a copy that is not yet uploaded.</div>
+  <div id="trashList"></div>
+  <div style="text-align:right;margin-top:12px"><button id="trashClose" type="button">Close</button></div>
 </div></div>
 <div class="ov hidden" id="ovProp"><div class="box">
   <h2 style="margin-bottom:6px">Start from a proposal</h2>
@@ -747,10 +756,10 @@ function cleanName(s){return String(s||'').replace(/[\\\/:*?"<>|]/g,'').replace(
 
 /* ---------- store ---------- */
 var DB,S=null;
-function defaults(){return{projects:[],clients:[],settings:{roles:[{name:'Principal / PE',rate:''},{name:'Engineer',rate:''},{name:'Technician',rate:''},{name:'Drafter',rate:''}],prepBy:'',staff:[]}}}
+function defaults(){return{projects:[],clients:[],trash:[],settings:{roles:[{name:'Principal / PE',rate:''},{name:'Engineer',rate:''},{name:'Technician',rate:''},{name:'Drafter',rate:''}],prepBy:'',staff:[]}}}
 function loadDB(){
   var d=defaults();
-  try{var r=JSON.parse(localStorage.getItem(storeKey()));if(r){d.projects=r.projects||[];d.clients=r.clients||[];d.settings=Object.assign(d.settings,r.settings||{});d.scan=r.scan||null}}catch(e){}
+  try{var r=JSON.parse(localStorage.getItem(storeKey()));if(r){d.projects=r.projects||[];d.clients=r.clients||[];d.settings=Object.assign(d.settings,r.settings||{});d.scan=r.scan||null;d.trash=r.trash||[]}}catch(e){}
   DB=d;d.projects.forEach(norm);
   try{ /* bring the old single-draft autosave forward once */
     var o=localStorage.getItem(OLD);
@@ -839,7 +848,7 @@ function upsertClient(P){
 }
 function usedProjNums(no,exceptId){
   var u=[],c=findClientByNo(no);if(c&&c.known)u=u.concat(c.known);
-  if(c&&c.reserved)Object.keys(c.reserved).forEach(function(k){if(c.reserved[k].id!==exceptId){var n=parseInt(k,10);if(!isNaN(n))u.push(n)}});
+  if(c&&c.reserved)Object.keys(c.reserved).forEach(function(k){if(c.reserved[k].id!==exceptId&&!c.reserved[k].released){var n=parseInt(k,10);if(!isNaN(n))u.push(n)}});
   DB.projects.forEach(function(p){if(p.clientNo===no&&p.id!==exceptId&&p.projNo){var n=parseInt(p.projNo,10);if(!isNaN(n))u.push(n)}});
   return u;
 }
@@ -869,7 +878,7 @@ function persistNow(){
   saveDB();
 }
 var touchedId=null;
-function touch(){if(!S)return;touchedId=S.id;S.updated=Date.now();if(S.remote)S.dirty=true;clearTimeout(saveT);saveT=setTimeout(persistNow,300);derived();if(CL)renderTeamBanner()}
+function touch(){if(!S)return;touchedId=S.id;S.updated=Date.now();if(S.remote)S.dirty=true;clearTimeout(saveT);saveT=setTimeout(persistNow,300);derived();if(CL){renderTeamBanner();scheduleReserve()}}
 
 /* ---------- views ---------- */
 var view='dash',dashTab='all',dashQ='';
@@ -912,7 +921,8 @@ function renderTeamBar(){
   el.classList.remove('hidden');
   if(!ACCT){el.innerHTML='Team sharing is on. <a href="#" id="acctIn">Sign in with Dropbox</a> to see and share projects.';return}
   var n=TIDX.list.length;
-  el.innerHTML=TIDX.busy?'Checking the team…':(TIDX.err?'<span class="err">'+esc(TIDX.err)+'</span> Showing what is on this device.':n+' project'+(n===1?'':'s')+' on the team'+(TIDX.at?' · checked '+new Date(TIDX.at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):''));
+  el.innerHTML='<span>'+(TIDX.busy?'Checking the team…':(TIDX.err?'<span class="err">'+esc(TIDX.err)+'</span> Showing what is on this device.':n+' project'+(n===1?'':'s')+' on the team'+(TIDX.at?' · checked '+new Date(TIDX.at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'')))+'</span>'+
+    '<label style="margin:0 0 0 auto;font-weight:400;font-family:var(--font-body);display:flex;gap:6px;align-items:center"><input type="checkbox" id="autoUp"'+(DB.settings.autoUpload?' checked':'')+'> Upload my changes when I leave a project</label>';
 }
 function whoLine(it){
   if(!CL)return '';
@@ -922,7 +932,7 @@ function whoLine(it){
   return h?'<div class="who">'+h+'</div>':'';
 }
 function renderDash(){
-  renderTeamBar();
+  renderTeamBar();renderTrashLink();
   var all=dashItems();fillDashFilters(all);
   var items=all.filter(dashPass);dashSort(items);
   var nd=items.filter(function(i){return i.status!=='complete'}).length,nc=items.length-nd;
@@ -975,7 +985,15 @@ function byId(id){return DB.projects.filter(function(p){return p.id===id})[0]}
 $('dNew').onclick=function(){S=blankProject();renderForm();show('form');derived();if(CL)renderTeamBanner();else $('tBanner').classList.add('hidden')};
 $('dClients').onclick=function(){show('clients')};
 $('cBack').onclick=function(){show('dash')};
-$('bBack').onclick=function(){persistNow();S=null;show('dash')};
+$('bBack').onclick=function(){
+  persistNow();
+  var leaving=S;S=null;show('dash');
+  /* with "Upload my changes when I leave a project" on, the team sees it without anyone remembering to upload */
+  if(CL&&DB.settings.autoUpload&&leaving&&!isEmpty(leaving)){
+    var st=teamState(leaving);
+    if(st==='local'||st==='dirty'||st==='gone')syncUp(leaving,true);
+  }
+};
 
 /* ---------- backup / restore ---------- */
 function download(name,text,type){
@@ -1430,7 +1448,7 @@ function derived(){
     else if(blind)hp=hasFS?'Next number unknown: your Dropbox has not been read on this device yet. <button type="button" id="scanNow">Read Dropbox</button>'
       :'No project numbers are on file for this client on this device. Type the number, or import the client list from your computer (Clients).';
     else if(P.projNo&&used.indexOf(pn)>=0){
-      var rv=kc2&&kc2.reserved&&kc2.reserved[String(pn)],rvs=rv&&rv.id!==P.id?' (taken by '+esc(rv.by||'someone')+' for "'+esc(rv.name||'another project')+'")':'';
+      var rv=kc2&&kc2.reserved&&kc2.reserved[String(pn)],rvs=rv&&!rv.released&&rv.id!==P.id?' (taken by '+esc(rv.by||'someone')+' for "'+esc(rv.name||'another project')+'")':'';
       hp='<span class="err">Number '+esc(P.projNo)+' is already used for this client'+rvs+'.</span> Next free: <b>'+nextProjNum(P.clientNo.trim())+'</b> <button type="button" id="useProjNo">Use it</button>';
     }
     else if(false)hp='<span class="err">Number '+esc(P.projNo)+' is already used for this client.</span> Next free: <b>'+nextProjNum(P.clientNo.trim())+'</b> <button type="button" id="useProjNo">Use it</button>';
@@ -1996,6 +2014,82 @@ $('ceSave').onclick=function(){
   $('ovClient').classList.add('hidden');renderClients();toast('Saved '+c.no+' '+c.name+'.');
 };
 
+/* ===== recently deleted (30 days) ===== */
+var TRASH_DAYS=30;
+function trashProject(p){
+  DB.trash=DB.trash||[];
+  var copy=JSON.parse(JSON.stringify(p));delete copy.__done;
+  DB.trash.push({p:copy,at:Date.now()});
+  purgeTrash();
+}
+function purgeTrash(){
+  var cutoff=Date.now()-TRASH_DAYS*864e5;
+  DB.trash=(DB.trash||[]).filter(function(t){return t.at>=cutoff});
+}
+function renderTrashLink(){
+  purgeTrash();
+  var n=(DB.trash||[]).length;
+  $('trashLink').innerHTML=n?'<a href="#" id="openTrash">Recently deleted ('+n+')</a>':'';
+}
+function renderTrash(){
+  var list=(DB.trash||[]).slice().sort(function(a,b){return b.at-a.at});
+  $('trashList').innerHTML=list.length?list.map(function(t){
+    var p=t.p,i=(DB.trash||[]).indexOf(t),left=Math.max(1,Math.ceil((t.at+TRASH_DAYS*864e5-Date.now())/864e5));
+    return '<div class="crow"><div class="nm"><b>'+esc(jobRef(p))+' '+esc(p.projName||'Untitled')+'</b><div class="hint" style="margin:0">'+esc(p.clientName||'')+' · deleted '+fmtDate(t.at)+' · '+left+' day'+(left===1?'':'s')+' left</div></div>'+
+      '<button class="small primary" type="button" data-trash-restore="'+i+'">Restore</button><button class="x" type="button" data-trash-drop="'+i+'" aria-label="Delete forever">×</button></div>';
+  }).join(''):'<div class="hint">Nothing here.</div>';
+}
+document.addEventListener('click',function(e){
+  if(e.target.id==='openTrash'){e.preventDefault();renderTrash();$('ovTrash').classList.remove('hidden');return}
+});
+$('trashClose').onclick=function(){$('ovTrash').classList.add('hidden')};
+$('trashList').addEventListener('click',function(e){
+  var r=e.target.closest('[data-trash-restore]'),d=e.target.closest('[data-trash-drop]');
+  if(r){
+    var t=DB.trash[+r.getAttribute('data-trash-restore')];if(!t)return;
+    var p=norm(JSON.parse(JSON.stringify(t.p)));
+    if(byId(p.id)){p.id=uid()}                    /* never clash with a project that is back or still here */
+    p.remote=null;p.dirty=false;p.updated=Date.now();
+    DB.projects.push(p);DB.trash.splice(DB.trash.indexOf(t),1);saveDB();
+    renderTrash();renderDash();toast('Restored "'+(p.projName||jobRef(p))+'". It is a draft on this device until you upload it.');
+    return;
+  }
+  if(d){
+    var t2=DB.trash[+d.getAttribute('data-trash-drop')];
+    if(t2&&confirm('Delete "'+(t2.p.projName||jobRef(t2.p))+'" forever?')){DB.trash.splice(DB.trash.indexOf(t2),1);saveDB();renderTrash();renderDash()}
+  }
+});
+
+/* ===== export the list you are looking at as a spreadsheet-ready CSV ===== */
+function csvCell(v){v=String(v==null?'':v);return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function exportCsv(){
+  var items=dashItems().filter(dashPass);dashSort(items);
+  var q=dashQ.toLowerCase().trim();
+  if(q)items=items.filter(function(i){return (i.jobRef+' '+i.name+' '+i.client+' '+(i.lead||'')+' '+(i.services||[]).join(' ')).toLowerCase().indexOf(q)>=0});
+  if(!items.length){toast('Nothing to export with these filters.');return}
+  var head=['Job number','Client number','Client','Project number','Project','Status','Fee type','Amount','Lead','Created by','Created','Last updated','Target completion','Services','Team status'];
+  var rows=items.map(function(i){
+    var p=i.p,created=i.createdAt?new Date(i.createdAt).toISOString().slice(0,10):'';
+    return [i.jobRef==='No number yet'?'':i.jobRef,i.clientNo||'',i.client||'',i.projNo||'',i.name||'',i.status==='complete'?'Complete':'Draft',i.fee==='fixed'?'Fixed fee':'Time & material',
+      i.total>0?i.total.toFixed(2):'',i.lead||'',creatorName(i),created,new Date(i.updated).toISOString().slice(0,10),i.due||'',(i.services||[]).join('; '),i.state?(STATE_TXT[i.state]||''):'']
+  });
+  var text='\ufeff'+[head].concat(rows).map(function(r){return r.map(csvCell).join(',')}).join('\r\n')+'\r\n';
+  download('Project Kickoff list '+stamp()+'.csv',text,'text/csv');
+  toast('Exported '+items.length+' project'+(items.length===1?'':'s')+'.');
+}
+$('dCsv').onclick=exportCsv;
+
+/* ===== offline notice ===== */
+function netUI(){$('offlineBar').classList.toggle('hidden',navigator.onLine!==false)}
+window.addEventListener('online',function(){netUI();if(CL)refreshTeam(true)});
+window.addEventListener('offline',netUI);
+netUI();
+
+/* ===== the "upload when I leave a project" setting ===== */
+document.addEventListener('change',function(e){
+  if(e.target.id==='autoUp'){DB.settings.autoUpload=e.target.checked;saveDB();toast(e.target.checked?'Your changes will upload when you leave a project.':'Automatic upload is off.')}
+});
+
 /* ==FEATURES-END== */
 /* ==SHELL-TEAM-BEGIN== */
 /* ---------- team mode (Dropbox sign-in + shared projects) ---------- */
@@ -2175,19 +2269,28 @@ async function openTeamProject(id){
 async function deleteProject(p,sum){
   var id=p?p.id:sum.id,name=(p?p.projName:sum.projName)||'this project';
   var onTeam=!!(CL&&(sum||(p&&p.remote)));
-  if(!onTeam){if(p&&confirm('Delete "'+name+'"? This cannot be undone.')){DB.projects.splice(DB.projects.indexOf(p),1);saveDB();renderDash()}return}
+  if(!onTeam){
+    if(p&&confirm('Delete "'+name+'"? You can restore it from Recently deleted for 30 days.')){
+      trashProject(p);var freed=releaseNumber(p);DB.projects.splice(DB.projects.indexOf(p),1);saveDB();renderDash();
+      if(freed&&CL)syncClientsUp().catch(function(){});
+      toast('Deleted. Restore it from Recently deleted.');
+    }
+    return;
+  }
   $('delText').innerHTML='<b>'+esc(name)+'</b> is shared with the team.';
   $('delLocal').classList.toggle('hidden',!p);
   $('ovDel').classList.remove('hidden');
-  delCtx={p:p,id:id,name:name};
+  delCtx={p:p,id:id,name:name,sum:sum};
 }
 var delCtx=null;
-$('delLocal').onclick=function(){var c=delCtx;$('ovDel').classList.add('hidden');if(!c||!c.p)return;DB.projects.splice(DB.projects.indexOf(c.p),1);saveDB();renderDash();toast('Removed from this device. It is still on the team.')};
+$('delLocal').onclick=function(){var c=delCtx;$('ovDel').classList.add('hidden');if(!c||!c.p)return;trashProject(c.p);DB.projects.splice(DB.projects.indexOf(c.p),1);saveDB();renderDash();toast('Removed from this device. It is still on the team.')};
 $('delAll').onclick=async function(){
   var c=delCtx;if(!c)return;$('ovDel').classList.add('hidden');
   if(!confirm('Delete "'+c.name+'" for everyone? Dropbox keeps deleted files recoverable for a while, but the team will no longer see it.'))return;
   try{await CL.removeProject(c.id,c.p&&c.p.remote?c.p.remote.rev:null);
-    if(c.p)DB.projects.splice(DB.projects.indexOf(c.p),1);
+    var held=c.p||c.sum;
+    if(c.p){trashProject(c.p);DB.projects.splice(DB.projects.indexOf(c.p),1)}
+    if(held&&releaseNumber({id:c.id,clientNo:held.clientNo,projNo:held.projNo}))syncClientsUp().catch(function(){});
     delete TIDX.sum[c.id];TIDX.list=TIDX.list.filter(function(m){return m.id!==c.id});saveDB();saveTeamCache();renderDash();toast('Deleted for everyone.')}
   catch(e){alert(e.code==='conflict'?'Someone changed it since you last got it. Open it and use Get latest first.':e.message)}
 };
@@ -2204,7 +2307,9 @@ function mergeSharedClients(list){
     var ex=findClientByNo(c.no)||findClientByName(c.name);
     if(!ex){DB.clients.push({no:c.no,name:c.name,addr:c.addr||'',contacts:c.contacts||[],known:[],width:2,reserved:c.reserved||{},updated:c.updated||0});changed=true;return}
     if((c.updated||0)>(ex.updated||0)){ex.name=c.name||ex.name;if(c.addr)ex.addr=c.addr;if(c.contacts&&c.contacts.length)ex.contacts=c.contacts;ex.updated=c.updated;changed=true}
-    var r=Object.assign({},ex.reserved||{},c.reserved||{});
+    /* per number, the newer entry wins (a released number is an entry too, so it stays released) */
+    var r=Object.assign({},ex.reserved||{});
+    Object.keys(c.reserved||{}).forEach(function(k){var a=r[k],b=c.reserved[k];if(!a||(b.at||0)>(a.at||0))r[k]=b});
     if(JSON.stringify(r)!==JSON.stringify(ex.reserved||{})){ex.reserved=r;changed=true}
   });
   if(changed)saveDB();
@@ -2225,8 +2330,34 @@ function reserveNumber(p){
   var c=findClientByNo(p.clientNo);if(!c)return;
   var n=String(parseInt(p.projNo,10));if(n==='NaN')return;
   c.reserved=c.reserved||{};
-  Object.keys(c.reserved).forEach(function(k){if(c.reserved[k].id===p.id&&k!==n)delete c.reserved[k]});
-  c.reserved[n]={id:p.id,name:p.projName,by:ACCT?ACCT.name:''};c.updated=Date.now();
+  Object.keys(c.reserved).forEach(function(k){var r=c.reserved[k];if(r.id===p.id&&k!==n&&!r.released)c.reserved[k]={id:p.id,released:true,at:Date.now()}});
+  c.reserved[n]={id:p.id,name:p.projName,by:ACCT?ACCT.name:'',at:Date.now()};
+}
+/* frees a number when its project is deleted (o = anything with id, clientNo, projNo) */
+function releaseNumber(o){
+  var c=findClientByNo(o.clientNo),n=String(parseInt(o.projNo,10));
+  if(!c||!c.reserved||!c.reserved[n]||c.reserved[n].id!==o.id||c.reserved[n].released)return false;
+  c.reserved[n]={id:o.id,released:true,at:Date.now()};return true;
+}
+/* a picked number is reserved for the team a few seconds after it settles, not only when the project is uploaded */
+var reserveT=null,lastReserveKey='';
+function scheduleReserve(){clearTimeout(reserveT);reserveT=setTimeout(reserveNow,4000)}
+async function reserveNow(){
+  var p=S;
+  if(!CL||!p||isEmpty(p)||!p.clientNo.trim()||!p.projNo.trim())return;
+  var key=p.id+'|'+p.clientNo.trim()+'|'+p.projNo.trim();
+  if(key===lastReserveKey)return;                    /* only when the number actually changed */
+  try{
+    lastReserveKey=key;
+    await syncClientsDown();                          /* learn what others have taken first */
+    var c=findClientByNo(p.clientNo.trim());
+    if(!c){upsertClient(p);c=findClientByNo(p.clientNo.trim())}
+    if(!c)return;
+    var n=String(parseInt(p.projNo,10));if(n==='NaN')return;
+    var rv=c.reserved&&c.reserved[n];
+    if(rv&&!rv.released&&rv.id!==p.id){derived();return}   /* someone else holds it: the form already says so */
+    reserveNumber(p);saveDB();await syncClientsUp();derived();
+  }catch(e){lastReserveKey=''/* offline: try again on the next edit; it is also reserved when the project is uploaded */}
 }
 
 /* ----- the company folder tree through the Dropbox API (works on the iPad too) ----- */
