@@ -247,7 +247,7 @@ button:disabled{opacity:.5;cursor:default}
   <section class="card">
     <h2><span class="num">2</span> Project</h2>
     <div class="grid">
-      <div><label for="projName">Project name</label><input id="projName" data-k="projName" autocomplete="off"></div>
+      <div><label for="projName">Project name</label><input id="projName" data-k="projName" autocomplete="off"><div class="hint" id="hDup"></div></div>
       <div><label for="projNo">Project JEG number</label><input id="projNo" data-k="projNo" autocomplete="off" inputmode="numeric" placeholder="e.g. 103">
         <div class="hint" id="hProj"></div></div>
       <div class="full hint" id="hJob" style="margin-top:-6px"></div>
@@ -266,6 +266,7 @@ button:disabled{opacity:.5;cursor:default}
       <div class="full"><label for="projDesc">Project description</label><textarea id="projDesc" data-k="projDesc" rows="5" placeholder="Scope, what the client asked for, key dates…"></textarea></div>
       <div class="full"><label>Services on this project <span class="hint" style="font-weight:400">pick every kind of work that applies</span></label>
         <div class="chips" id="svcChips"></div>
+        <div id="svcSuggest" style="margin:6px 0"></div>
         <div style="position:relative"><input id="svcInput" placeholder="Search, or type your own + Enter" autocomplete="off" role="combobox" aria-expanded="false"><div id="svcList" class="dd hidden"></div></div></div>
       <datalist id="staffList"></datalist>
       <div><label for="startDate">Start date</label><input id="startDate" data-k="startDate" type="date"></div>
@@ -1457,6 +1458,7 @@ function derived(){
     if(kc2&&kc2.ignored&&kc2.ignored.length)hp+=(hp?'<br>':'')+'<span class="hint">Ignored '+esc(kc2.ignored.join(', '))+' in Dropbox: far above this client\'s other numbers, so it looks like a typo or a stray folder.</span>';
   }
   $('hProj').innerHTML=hp;
+  entryHints();
   /* folder */
   refreshFolder();
   /* estimate */
@@ -1907,6 +1909,48 @@ async function saveSummaryToDropbox(){
   finally{btn.disabled=false}
 }
 $('fSummary').onclick=saveSummaryToDropbox;
+
+/* ===== entry-time helpers: service suggestions from the project name, and a "same job?" warning ===== */
+var SVC_RULES=[
+ [/\bscan(s|ning)?\b|point cloud/,'Digital twin'],[/\bstak(e|ing)\b/,'Staking'],[/as-?built/,'As-built package'],
+ [/\beaw\b|permit/,'Permit application'],[/recert|renewal/,'Permit recertification'],[/\bcqap\b/,'Construction quality assurance plan'],
+ [/construction admin|\bcqa\b|documentation/,'Construction documentation report'],[/concrete test/,'Concrete testing'],
+ [/ventilat/,'Ventilation study'],[/\bcfd\b/,'CFD simulation'],[/truss/,'Truss inspection'],[/storm|tornado|hail/,'Storm damage assessment'],
+ [/structural (assessment|inspection)|evaluation/,'Structural inspection'],[/site assessment/,'Site assessment'],
+ [/digester|\brng\b/,'Digester design'],[/\bgdu\b|gilt development/,'GDU design'],[/manure pit/,'Manure pit design'],
+ [/cistern|\btank\b/,'Tank design'],[/mezzanine|addition|expansion/,'Building addition'],[/remodel|renovation/,'Remodel design'],
+ [/foundation/,'Foundation design'],[/drainage/,'Drainage design'],[/civil|site design/,'Civil site design'],
+ [/water balance/,'Water balance'],[/recycle/,'Recycle system design'],[/\bbeam\b/,'Beam design']];
+function suggestServices(P){
+  var t=(P.projName+' '+(P.propName||'')).toLowerCase(),out=[];
+  SVC_RULES.forEach(function(r){if(r[0].test(t)&&out.indexOf(r[1])<0&&P.services.indexOf(r[1])<0)out.push(r[1])});
+  return out.slice(0,4);
+}
+function nameWords(s){return normWords(s).split(' ').filter(function(w){return w&&['the','and','of','new','project'].indexOf(w)<0})}
+function sameJobLike(a,b){
+  var x=normWords(a),y=normWords(b);if(!x||!y)return false;
+  if(x===y)return true;
+  if(Math.min(x.length,y.length)>=5&&(x.indexOf(y)>=0||y.indexOf(x)>=0))return true;
+  var wa=nameWords(a),wb=nameWords(b);if(wa.length<2||wb.length<2)return false;
+  var common=wa.filter(function(w){return wb.indexOf(w)>=0}).length;
+  return common/(wa.length+wb.length-common)>=0.75;
+}
+function dupProjects(P){
+  var out=[],nm=(P.projName||'').trim();if(nm.length<3)return out;
+  function sameClient(no,name){return (P.clientNo&&no&&P.clientNo===no)||(P.clientName&&name&&P.clientName.trim().toLowerCase()===String(name).trim().toLowerCase())}
+  var seen={};seen[P.id]=1;
+  DB.projects.forEach(function(p){seen[p.id]=1;if(p.id!==P.id&&sameClient(p.clientNo,p.clientName)&&sameJobLike(nm,p.projName))out.push(p)});
+  if(CL)Object.keys(TIDX.sum).forEach(function(id){var s=TIDX.sum[id];if(seen[id])return;if(sameClient(s.clientNo,s.clientName)&&sameJobLike(nm,s.projName))out.push({projName:s.projName,clientNo:s.clientNo,projNo:s.projNo})});
+  return out.slice(0,3);
+}
+function entryHints(){
+  if(!S)return;
+  var sg=suggestServices(S);
+  $('svcSuggest').innerHTML=sg.length?'<span class="hint">Suggested:</span> '+sg.map(function(n){return '<button type="button" class="small" data-sugg="'+esc(n)+'">＋ '+esc(n)+'</button>'}).join(' '):'';
+  var d=dupProjects(S);
+  $('hDup').innerHTML=d.length?'<span class="warn">Looks like '+d.map(function(p){return '"'+esc(p.projName)+'"'+(p.projNo?' ('+esc(jobRef(p))+')':'')}).join(' and ')+', already on the list for this client. Same job?</span>':'';
+}
+$('svcSuggest').addEventListener('click',function(e){var b=e.target.closest('[data-sugg]');if(b&&S)addSvc(b.getAttribute('data-sugg'))});
 
 /* ===== start from a Proposals folder ===== */
 var PROPC={list:[],at:0,busy:false,q:''};
