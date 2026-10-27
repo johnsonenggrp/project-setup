@@ -360,6 +360,7 @@ button:disabled{opacity:.5;cursor:default}
     </div>
 
     <div class="internal" id="internal"><b>Internal check</b> <span class="hint">(screen only, not on the printout)</span><div id="internalTxt"></div></div>
+    <div class="hint" id="estSnap"></div>
 
     <div style="margin-top:14px">
       <label for="estNotes">Estimate notes / assumptions</label>
@@ -801,6 +802,7 @@ function norm(p){
   if(p.dirty===undefined)p.dirty=false;
   if(p.createdBy===undefined)p.createdBy=null;
   if(p.editedBy===undefined)p.editedBy=null;
+  if(p.estSnap===undefined)p.estSnap=null;
   if(!p.propYear)p.propYear=b.propYear;
   if(p.folderDone&&p.folderDone.path&&!p.folderDone.paths)p.folderDone.paths=[p.folderDone.path];
   ['contacts','labor','costs','milestones'].forEach(function(k){if(!Array.isArray(p[k]))p[k]=b[k]});
@@ -973,7 +975,7 @@ $('dashList').addEventListener('click',function(e){
   if(dn){var pd=byId(dn);if(pd)syncDown(pd);return}
   if(rs){var pr=byId(rs);if(pr)resolveConflict(pr);return}
   if(d){var src=byId(d);if(!src)return;
-    var n=JSON.parse(JSON.stringify(src));n.id=uid();n.status='draft';n.created=n.updated=Date.now();n.projNo='';n.folderDone=null;
+    var n=JSON.parse(JSON.stringify(src));n.id=uid();n.status='draft';n.created=n.updated=Date.now();n.projNo='';n.folderDone=null;n.estSnap=null;
     n.remote=null;n.dirty=false;n.createdBy=ACCT?acctMini(ACCT):null;n.editedBy=null;
     DB.projects.push(n);saveDB();toast('Duplicated. Set the new project number.');openProject(n);return}
   if(x){var p=byId(x);deleteProject(p,p?null:TIDX.sum[x]);return}
@@ -1465,6 +1467,9 @@ function derived(){
   if(fixed){
     if(P.fixedFee!==''&&c.est>0&&Math.abs(c.est-c.total)>0.005)th='The breakdown builds to '+money(c.est)+'; the fixed fee is '+money(Math.abs(c.total-c.est))+(c.total>c.est?' higher.':' lower.');
   }else if(num(P.nte)>0){th=c.total>num(P.nte)?'Over the not-to-exceed by '+money(c.total-num(P.nte))+'.':'Not-to-exceed '+money(num(P.nte))+' ('+money(num(P.nte)-c.total)+' headroom).'}
+  var sn=P.estSnap,sh='';
+  if(sn){var dl=c.total-sn.total;sh='Estimate when first marked complete ('+fmtDate(sn.at)+'): <b>'+money(sn.total)+'</b>'+(Math.abs(dl)>0.005?'. Now '+money(c.total)+' (<b>'+(dl>0?'+':'−')+money(Math.abs(dl))+'</b>).':'. No change since.')+' <button type="button" class="small" id="snapReset">Use current as the baseline</button>'}
+  $('estSnap').innerHTML=sh;
   $('totalHint').textContent=th;$('totalHint').className='hint'+(/Over/.test(th)?' err':'');
   /* row totals */
   document.querySelectorAll('#costs .lrow').forEach(function(r){var x=S.costs[+r.getAttribute('data-i')];if(x)r.querySelector('[data-ototal]').textContent=money(num(x.amount)*(1+num(x.markup)/100))});
@@ -1625,7 +1630,7 @@ $('roleDone').onclick=function(){
 /* complete / save / share / print */
 $('bComplete').onclick=function(){
   if(S.status==='complete'){S.status='draft'}
-  else{var m=missingList(S);if(m.length&&!confirm('Still missing: '+m.join(', ')+'.\n\nMark complete anyway?'))return;S.status='complete'}
+  else{var m=missingList(S);if(m.length&&!confirm('Still missing: '+m.join(', ')+'.\n\nMark complete anyway?'))return;S.status='complete';if(!S.estSnap){var cc=calc(S);S.estSnap={at:Date.now(),total:cc.total,fee:S.fee}}}
   $('bComplete').textContent=S.status==='complete'?'Reopen':'Complete';
   touch();persistNow();
   toast(S.status==='complete'?'Marked complete. Find it under Complete on the dashboard.':'Back to draft.');
@@ -1634,6 +1639,7 @@ $('bComplete').onclick=function(){
     setTimeout(function(){if(confirm('Save the project summary into its Dropbox folder now?'))saveSummaryToDropbox()},250);
   }
 };
+$('estSnap').addEventListener('click',function(e){if(!S||!e.target.closest('#snapReset'))return;var cc=calc(S);S.estSnap={at:Date.now(),total:cc.total,fee:S.fee};touch();toast('Baseline set to the current estimate.')});
 function fname(){return 'Project Kickoff - '+cleanName((S.clientNo&&S.projNo?S.clientNo+'-'+S.projNo+' ':'')+(S.projName||'New Project'))}
 $('bSave').onclick=function(){persistNow();download(fname()+'.json',JSON.stringify(S,null,2),'application/json')};
 function summaryText(P){
@@ -1928,6 +1934,20 @@ function renderPropList(){
     return '<div class="crow"><div class="nm"><b>'+esc(propDisplayName(p.name)||p.name)+'</b><div class="hint" style="margin:0">'+esc(p.year)+' Proposals · '+esc(p.name)+'</div></div><button class="small primary" type="button" data-pick-prop="'+PROPC.list.indexOf(p)+'">Use</button></div>';
   }).join(''):'<div class="hint">No proposals found'+(q?' for that search.':'.')+'</div>';
 }
+/* guess the client from the words a proposal folder starts with ("Heartland Sunny Side 400k Staking" -> Heartland ...) */
+var CLIENT_ALIAS={cf:'christensen farms'};
+function normWords(s){return String(s).toLowerCase().replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()}
+function guessClientFromProposal(display){
+  var w=String(display).trim().split(/\s+/);
+  for(var k=Math.min(4,w.length-1);k>=1;k--){   /* at least one word is left over for the project name */
+    var pre=normWords(w.slice(0,k).join(' '));if(!pre)continue;
+    if(k===1&&CLIENT_ALIAS[pre])pre=CLIENT_ALIAS[pre];
+    var hits=DB.clients.filter(function(c){var n=normWords(c.name);return n===pre||n.indexOf(pre+' ')===0});
+    if(hits.length===1)return{client:hits[0],rest:w.slice(k).join(' ')};
+    if(hits.length>1)return null;
+  }
+  return null;
+}
 $('propPick').onclick=function(){
   if(!CL)return;
   PROPC.q='';$('propQ').value='';$('ovProp').classList.remove('hidden');renderPropList();
@@ -1940,10 +1960,12 @@ $('propList').addEventListener('click',function(e){
   var it=PROPC.list[+b.getAttribute('data-pick-prop')];if(!it)return;
   S.proposal={path:'Proposals/'+it.dir+'/'+it.name};
   S.propName=propDisplayName(it.name);S.areas.prop=false;
-  if(!S.projName.trim()){S.projName=S.propName;$('projName').value=S.projName}
+  var g=!S.clientName.trim()&&!S.clientNo.trim()?guessClientFromProposal(S.propName):null,said='';
+  if(g){S.clientName=g.client.name;$('clientName').value=g.client.name;fillFromClient(g.client);said=' Client set to '+g.client.name+'.'}
+  if(!S.projName.trim()){S.projName=g?g.rest:S.propName;$('projName').value=S.projName}
   if(!S.propStatus){S.propStatus='Proposal sent';$('propStatus').value=S.propStatus}
   $('ovProp').classList.add('hidden');renderAreas();touch();featureUI();
-  toast('Linked to the proposal "'+it.name+'".');
+  toast('Linked to the proposal "'+it.name+'".'+said);
 });
 $('propLink').addEventListener('click',function(e){
   var b=e.target.closest('button');if(!b||!S)return;
