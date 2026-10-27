@@ -1,7 +1,7 @@
 /* New Project Kickoff â€” offline service worker.
    Network-first for the page (so updates land when online), cache-first
    for static assets (so it works offline after the first load). */
-const CACHE = "kickoff-v16";
+const CACHE = "kickoff-v17";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
