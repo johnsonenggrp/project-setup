@@ -1062,7 +1062,7 @@ $('dFile').onchange=function(){var f=this.files[0];this.value='';if(!f)return;
 /* ---------- clients view ---------- */
 function renderClients(){
   var q=$('cQ').value.toLowerCase().trim();
-  var list=DB.clients.slice().sort(function(a,b){return a.no<b.no?-1:a.no>b.no?1:0}).filter(function(c){var hay=(c.no+' '+c.name+' '+(c.notes||'')+' '+(c.contacts||[]).map(function(x){return [x.name,x.email,x.phone].join(' ')}).join(' ')).toLowerCase();return !q||hay.indexOf(q)>=0||(q.replace(/D/g,'').length>=4&&hay.replace(/D/g,'').indexOf(q.replace(/D/g,''))>=0)});
+  var list=DB.clients.slice().sort(function(a,b){return a.no<b.no?-1:a.no>b.no?1:0}).filter(function(c){var hay=(c.no+' '+c.name+' '+(c.notes||'')+' '+(c.contacts||[]).map(function(x){return [x.name,x.email,x.phone].join(' ')}).join(' ')).toLowerCase();return !q||hay.indexOf(q)>=0||(q.replace(/\D/g,'').length>=4&&hay.replace(/\D/g,'').indexOf(q.replace(/\D/g,''))>=0)});
   $('cList').innerHTML=list.length?list.map(function(c){
     var n=usedProjNums(c.no,null).length;
     var kn=numbersKnown(c)?n+' project number'+(n===1?'':'s')+' known':'project numbers not checked yet';
@@ -1309,7 +1309,7 @@ function renderContacts(){
 /* tap to email or call the contact */
 function contactLinks(row,c){
   var el=row.querySelector('[data-cl]');if(!el||!c)return;
-  var em=String(c.email||'').trim(),ph=String(c.phone||'').replace(/[^d+]/g,'');
+  var em=String(c.email||'').trim(),ph=String(c.phone||'').replace(/[^\d+]/g,'');
   el.innerHTML=(em?'<a href="mailto:'+esc(em)+'">✉ Email</a>':'')+(ph.length>=7?'<a href="tel:'+esc(ph)+'">☎ Call</a>':'');
 }
 function roleOptions(sel){
