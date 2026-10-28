@@ -41,6 +41,8 @@ input[type=checkbox]{width:auto;min-height:0}
 textarea{min-height:90px;resize:vertical}
 input:focus,textarea:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
 input.bad{border-color:var(--danger);background:#fff6f5}
+.miss{border-color:var(--danger)!important;background:#fff6f5!important}
+.clinks a{margin-right:14px}
 .hint{font-size:.78rem;color:#6b8592;margin-top:4px}
 .hint.warn{color:var(--warn);font-weight:700}
 .hint.err{color:var(--danger);font-weight:700}
@@ -447,6 +449,7 @@ button:disabled{opacity:.5;cursor:default}
     <div><label for="ceName">Client name</label><input id="ceName" autocomplete="off"></div>
     <div><label for="ceNo">Client JEG number</label><input id="ceNo" disabled></div>
     <div class="full"><label for="ceAddr">Address</label><textarea id="ceAddr" rows="3"></textarea></div>
+    <div class="full"><label for="ceNotes">Notes for the team <span class="hint" style="font-weight:400">shown whenever this client is picked</span></label><textarea id="ceNotes" rows="2" placeholder="e.g. PO required before work starts"></textarea></div>
   </div>
   <label style="margin-top:12px">Contacts</label>
   <div id="ceContacts"></div>
@@ -912,7 +915,7 @@ function dashItems(){
       if(have[id])return;var s=TIDX.sum[id];
       items.push({id:id,p:null,sum:s,jobRef:s.jobRef,name:s.projName,client:s.clientName,status:s.status,fee:s.fee,total:s.total,createdBy:s.createdBy,
         editedBy:s.editedBy||(s.modifiedBy?{name:s.modifiedBy.name,at:s.modifiedAt}:null),updated:s.updated,state:'teamonly',miss:0,folder:false,
-        services:s.services||[],clientNo:s.clientNo||'',projNo:s.projNo||'',createdAt:s.created||0,lead:s.lead||'',due:s.due||''});
+        services:s.services||[],clientNo:s.clientNo||'',projNo:s.projNo||'',createdAt:s.created||0,lead:s.lead||'',due:s.due||'',folderKnown:s.folder});
     });
   }
   return items;
@@ -963,7 +966,7 @@ function renderDash(){
       '<span class="badge '+(i.status==='complete'?'complete':'draft')+'">'+(i.status==='complete'?'Complete':'Draft')+'</span>'+dueBadge(i)+chip+'</span></div>'+
       '<div class="pc-name">'+esc(i.name||'Untitled project')+'</div>'+
       '<div class="pc-sub">'+esc(i.client||'No client yet')+(i.total>0?' · '+money(i.total):'')+'</div>'+whoLine(i)+
-      '<div class="pc-foot"><span>Updated '+fmtDate(i.updated)+(i.status!=='complete'&&i.miss?' · '+i.miss+' item'+(i.miss>1?'s':'')+' missing':'')+(i.folder?' · folder created':'')+'</span>'+
+      '<div class="pc-foot"><span>Updated '+fmtDate(i.updated)+(i.status!=='complete'&&i.miss?' · '+i.miss+' item'+(i.miss>1?'s':'')+' missing':'')+(i.folder?' · folder created':'')+((i.status==='complete'&&(i.p?!i.folder:i.folderKnown===false))?' · <span style="color:var(--warn)">no folders yet</span>':'')+'</span>'+
       '<span class="acts">'+acts+'</span></div></div>';
   }).join('');
 }
@@ -1035,7 +1038,7 @@ $('dFile').onchange=function(){var f=this.files[0];this.value='';if(!f)return;
 /* ---------- clients view ---------- */
 function renderClients(){
   var q=$('cQ').value.toLowerCase().trim();
-  var list=DB.clients.slice().sort(function(a,b){return a.no<b.no?-1:a.no>b.no?1:0}).filter(function(c){return !q||(c.no+' '+c.name).toLowerCase().indexOf(q)>=0});
+  var list=DB.clients.slice().sort(function(a,b){return a.no<b.no?-1:a.no>b.no?1:0}).filter(function(c){var hay=(c.no+' '+c.name+' '+(c.notes||'')+' '+(c.contacts||[]).map(function(x){return [x.name,x.email,x.phone].join(' ')}).join(' ')).toLowerCase();return !q||hay.indexOf(q)>=0||(q.replace(/D/g,'').length>=4&&hay.replace(/D/g,'').indexOf(q.replace(/D/g,''))>=0)});
   $('cList').innerHTML=list.length?list.map(function(c){
     var n=usedProjNums(c.no,null).length;
     var kn=numbersKnown(c)?n+' project number'+(n===1?'':'s')+' known':'project numbers not checked yet';
@@ -1275,8 +1278,15 @@ function renderContacts(){
     '<div><label>Name</label><input data-c="name" value="'+esc(c.name)+'"></div>'+
     '<div><label>Title / role</label><input data-c="title" value="'+esc(c.title)+'"></div>'+
     '<div><label>Email</label><input data-c="email" data-email="1" type="email" inputmode="email" value="'+esc(c.email)+'"></div>'+
-    '<div><label>Phone</label><input data-c="phone" type="tel" inputmode="tel" value="'+esc(c.phone)+'"></div></div></div>';
+    '<div><label>Phone</label><input data-c="phone" type="tel" inputmode="tel" value="'+esc(c.phone)+'"></div></div><div class="hint clinks" data-cl></div></div>';
   }).join('');
+  Array.prototype.forEach.call(document.querySelectorAll('#contacts .contact'),function(r){contactLinks(r,S.contacts[+r.getAttribute('data-i')])});
+}
+/* tap to email or call the contact */
+function contactLinks(row,c){
+  var el=row.querySelector('[data-cl]');if(!el||!c)return;
+  var em=String(c.email||'').trim(),ph=String(c.phone||'').replace(/[^d+]/g,'');
+  el.innerHTML=(em?'<a href="mailto:'+esc(em)+'">✉ Email</a>':'')+(ph.length>=7?'<a href="tel:'+esc(ph)+'">☎ Call</a>':'');
 }
 function roleOptions(sel){
   var names=DB.settings.roles.map(function(r){return r.name});
@@ -1435,6 +1445,7 @@ function derived(){
       :'<span class="ok">Known client: '+esc(kc.no+' '+kc.name)+'.</span>'}
   else if(P.clientName.trim()&&!P.clientNo.trim()){hc='New client? Next free number is <b>'+nextClientNo()+'</b> <button type="button" id="useClientNo">Use it</button>'}
   if(byNo&&byName&&byNo!==byName)hc='<span class="err">That number belongs to "'+esc(byNo.name)+'", not "'+esc(P.clientName)+'".</span>';
+  var kn=byNo||byName;if(kn&&kn.notes)hc+=(hc?'<br>':'')+'<span class="warn">Note on this client: '+esc(kn.notes)+'</span>';
   $('hClient').innerHTML=hc;
   /* project number hint */
   var hp='';
@@ -1507,6 +1518,7 @@ function refreshFolder(){
 /* ---------- events ---------- */
 document.addEventListener('input',function(e){
   var t=e.target;if(!S||!$('vForm').contains(t))return;
+  t.classList.remove('miss');
   var k=t.getAttribute('data-k');
   if(k){
     if(t.id==='billSame'){return}
@@ -1519,7 +1531,7 @@ document.addEventListener('input',function(e){
   var tr=t.closest('[data-i]');if(!tr)return;var i=+tr.getAttribute('data-i');
   var a;
   if((a=t.getAttribute('data-c'))){var v=t.value;
-    if(a==='phone')v=fmtPhone(v),t.value=v;S.contacts[i][a]=v;touch();return}
+    if(a==='phone')v=fmtPhone(v),t.value=v;S.contacts[i][a]=v;contactLinks(tr,S.contacts[i]);touch();return}
   if((a=t.getAttribute('data-l'))){
     var L=S.labor[i];L[a]=t.value;
     if(a==='hours'||a==='rate'||a==='role'){autoAmt(L);tr.querySelector('[data-l=amount]').value=L.amount;
@@ -1632,7 +1644,32 @@ $('roleDone').onclick=function(){
 /* complete / save / share / print */
 $('bComplete').onclick=function(){
   if(S.status==='complete'){S.status='draft'}
-  else{var m=missingList(S);if(m.length&&!confirm('Still missing: '+m.join(', ')+'.\n\nMark complete anyway?'))return;S.status='complete';if(!S.estSnap){var cc=calc(S);S.estSnap={at:Date.now(),total:cc.total,fee:S.fee}}}
+  else{var m=missingList(S);
+    if(m.length){markMissing(S);setTimeout(function(){if(confirm('Still missing: '+m.join(', ')+'.\n\nMark complete anyway?'))markComplete()},60);return}
+    markComplete();return}
+  afterStatus();
+};
+function markComplete(){
+  S.status='complete';if(!S.estSnap){var cc=calc(S);S.estSnap={at:Date.now(),total:cc.total,fee:S.fee}}
+  afterStatus();
+}
+/* outline the fields Complete is waiting for and scroll to the first */
+function markMissing(P){
+  document.querySelectorAll('.miss').forEach(function(el){el.classList.remove('miss')});
+  var els=[];
+  function add(el){if(el)els.push(el)}
+  if(!P.clientName.trim())add($('clientName'));
+  if(!P.clientNo.trim())add($('clientNo'));
+  if(!P.contacts.some(function(c){return c.name.trim()}))add(document.querySelector('#contacts [data-c=name]'));
+  if(!P.projName.trim())add($('projName'));
+  if(!P.projNo.trim())add($('projNo'));
+  if(!P.projAddr.trim())add($('projAddr'));
+  if(!P.projDesc.trim())add($('projDesc'));
+  if(calc(P).total<=0)add(P.fee==='fixed'?$('fixedFee'):document.querySelector('#labor [data-l=hours]'));
+  els.forEach(function(el){el.classList.add('miss')});
+  if(els[0])els[0].scrollIntoView({block:'center',behavior:'smooth'});
+}
+function afterStatus(){
   $('bComplete').textContent=S.status==='complete'?'Reopen':'Complete';
   touch();persistNow();
   toast(S.status==='complete'?'Marked complete. Find it under Complete on the dashboard.':'Back to draft.');
@@ -2043,7 +2080,7 @@ var ceNo=null,ceContacts=[];
 function openClientEditor(no){
   var c=findClientByNo(no);if(!c)return;
   ceNo=no;$('ceTitle').textContent=c.no+' '+c.name;
-  $('ceName').value=c.name;$('ceNo').value=c.no;$('ceAddr').value=c.addr||'';
+  $('ceName').value=c.name;$('ceNo').value=c.no;$('ceAddr').value=c.addr||'';$('ceNotes').value=c.notes||'';
   ceContacts=(c.contacts&&c.contacts.length)?JSON.parse(JSON.stringify(c.contacts)):[blankContact()];
   renderCeContacts();$('ovClient').classList.remove('hidden');
 }
@@ -2068,7 +2105,7 @@ $('ceCancel').onclick=function(){$('ovClient').classList.add('hidden')};
 $('ceSave').onclick=function(){
   var c=findClientByNo(ceNo);if(!c)return;
   var name=$('ceName').value.trim();if(!name){$('ceName').focus();return}
-  c.name=name;c.addr=$('ceAddr').value;
+  c.name=name;c.addr=$('ceAddr').value;c.notes=$('ceNotes').value.trim();
   c.contacts=ceContacts.filter(function(x){return x.name||x.title||x.email||x.phone});
   c.updated=Date.now();saveDB();
   if(CL)syncClientsUp().catch(function(){});
@@ -2205,7 +2242,7 @@ document.addEventListener('click',function(e){
 /* ----- what the team has ----- */
 function summarize(p,meta){
   var c=calc(p);
-  return{v:3,lead:p.lead||'',due:p.dueDate||'',id:p.id,eTag:meta.eTag,jobRef:jobRef(p),projName:p.projName,clientName:p.clientName,clientNo:p.clientNo,projNo:p.projNo,services:p.services||[],created:p.created||0,fee:p.fee,total:c.total,status:p.status,
+  return{v:3,folder:!!p.folderDone,lead:p.lead||'',due:p.dueDate||'',id:p.id,eTag:meta.eTag,jobRef:jobRef(p),projName:p.projName,clientName:p.clientName,clientNo:p.clientNo,projNo:p.projNo,services:p.services||[],created:p.created||0,fee:p.fee,total:c.total,status:p.status,
     createdBy:p.createdBy||null,editedBy:p.editedBy||null,updated:p.updated||meta.modifiedAt,modifiedBy:meta.modifiedBy,modifiedAt:meta.modifiedAt};
 }
 async function refreshTeam(force){
@@ -2359,15 +2396,15 @@ $('delCancel').onclick=function(){$('ovDel').classList.add('hidden');delCtx=null
 
 /* ----- shared client list + reserved project numbers ----- */
 function shareableClients(){
-  return DB.clients.filter(function(c){return c.addr||(c.contacts&&c.contacts.length)||(c.reserved&&Object.keys(c.reserved).length)})
-    .map(function(c){return{no:c.no,name:c.name,addr:c.addr||'',contacts:c.contacts||[],reserved:c.reserved||{},updated:c.updated||0}});
+  return DB.clients.filter(function(c){return c.addr||c.notes||(c.contacts&&c.contacts.length)||(c.reserved&&Object.keys(c.reserved).length)})
+    .map(function(c){return{no:c.no,name:c.name,addr:c.addr||'',notes:c.notes||'',contacts:c.contacts||[],reserved:c.reserved||{},updated:c.updated||0}});
 }
 function mergeSharedClients(list){
   var changed=false;
   list.forEach(function(c){
     var ex=findClientByNo(c.no)||findClientByName(c.name);
-    if(!ex){DB.clients.push({no:c.no,name:c.name,addr:c.addr||'',contacts:c.contacts||[],known:[],width:2,reserved:c.reserved||{},updated:c.updated||0});changed=true;return}
-    if((c.updated||0)>(ex.updated||0)){ex.name=c.name||ex.name;if(c.addr)ex.addr=c.addr;if(c.contacts&&c.contacts.length)ex.contacts=c.contacts;ex.updated=c.updated;changed=true}
+    if(!ex){DB.clients.push({no:c.no,name:c.name,addr:c.addr||'',notes:c.notes||'',contacts:c.contacts||[],known:[],width:2,reserved:c.reserved||{},updated:c.updated||0});changed=true;return}
+    if((c.updated||0)>(ex.updated||0)){ex.name=c.name||ex.name;if(c.addr)ex.addr=c.addr;if(c.notes!==undefined)ex.notes=c.notes;if(c.contacts&&c.contacts.length)ex.contacts=c.contacts;ex.updated=c.updated;changed=true}
     /* per number, the newer entry wins (a released number is an entry too, so it stays released) */
     var r=Object.assign({},ex.reserved||{});
     Object.keys(c.reserved||{}).forEach(function(k){var a=r[k],b=c.reserved[k];if(!a||(b.at||0)>(a.at||0))r[k]=b});
