@@ -1055,7 +1055,7 @@ function mergeIn(d){
   if(d.settings&&d.settings.roles&&DB.settings.roles.every(function(r){return !r.rate}))DB.settings.roles=d.settings.roles;
   saveDB();return{added:added,upd:upd};
 }
-function readJson(file,cb){var r=new FileReader();r.onload=function(){try{cb(JSON.parse(r.result))}catch(e){alert('That file could not be read.')}};r.readAsText(file)}
+function readJson(file,cb){var r=new FileReader();r.onload=function(){var d;try{d=JSON.parse(r.result)}catch(e){alert('That file could not be read.');return}cb(d)};r.readAsText(file)}
 $('dFile').onchange=function(){var f=this.files[0];this.value='';if(!f)return;
   readJson(f,function(d){var r=mergeIn(d);renderDash();toast(r.added+' added, '+r.upd+' updated')})};
 
@@ -2239,7 +2239,8 @@ $('pasteAdd').onclick=function(){
 function showHelp(){$('ovHelp').classList.remove('hidden');DB.settings.helpSeen=true;saveDB()}
 $('helpOpen').addEventListener('click',function(e){e.preventDefault();showHelp()});
 $('helpClose').onclick=function(){$('ovHelp').classList.add('hidden')};
-if(!DB.settings.helpSeen&&!DB.projects.length)setTimeout(showHelp,600);
+/* DB is not loaded yet while this file runs, so look at it a moment later */
+setTimeout(function(){if(DB&&!DB.settings.helpSeen&&!DB.projects.length)showHelp()},900);
 
 function netUI(){$('offlineBar').classList.toggle('hidden',navigator.onLine!==false)}
 window.addEventListener('online',async function(){
