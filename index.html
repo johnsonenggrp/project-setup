@@ -916,7 +916,11 @@ function touch(){if(!S)return;touchedId=S.id;S.updated=Date.now();if(S.remote)S.
 
 /* ---------- views ---------- */
 var view='dash',dashTab='all',dashQ='';
+var dashY=0,lastOpenId=null;
 function show(v){
+  var prev=view;
+  if(prev==='dash'&&v!=='dash')dashY=window.scrollY;
+  if(v==='form'&&S)lastOpenId=S.id;
   view=v;
   ['dash','clients','form'].forEach(function(n){
     $('v'+n.charAt(0).toUpperCase()+n.slice(1)).classList.toggle('hidden',n!==v);
@@ -927,7 +931,12 @@ function show(v){
   if(v==='clients')renderClients();
   $('dRefresh').classList.toggle('hidden',!(CL&&v==='dash'));
   $('bUpload').classList.toggle('hidden',!(CL&&v==='form'));
-  window.scrollTo(0,0);
+  if(v==='dash'&&prev==='form'){
+    /* coming back from a project: stay where you were, and make sure that project's card is on screen */
+    window.scrollTo(0,dashY);
+    var card=lastOpenId&&$('dashList').querySelector('[data-open="'+lastOpenId+'"],[data-opent="'+lastOpenId+'"]');
+    if(card){var r=card.getBoundingClientRect();if(r.top<60||r.bottom>window.innerHeight-70)card.scrollIntoView({block:'center'})}
+  }else window.scrollTo(0,0);
 }
 function openProject(p){S=p;renderForm();show('form');derived();if(CL)renderTeamBanner();else $('tBanner').classList.add('hidden')}
 
