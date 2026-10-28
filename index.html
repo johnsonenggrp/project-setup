@@ -2519,7 +2519,14 @@ var reserveT=null,lastReserveKey='';
 function scheduleReserve(){clearTimeout(reserveT);reserveT=setTimeout(reserveNow,4000)}
 async function reserveNow(){
   var p=S;
-  if(!CL||!p||isEmpty(p)||!p.clientNo.trim()||!p.projNo.trim())return;
+  if(!CL||!p||isEmpty(p)||!p.clientNo.trim())return;
+  if(!p.projNo.trim()){                               /* the number was cleared: give back what this project was holding */
+    var hc=findClientByNo(p.clientNo.trim()),freed=false;
+    if(hc&&hc.reserved)Object.keys(hc.reserved).forEach(function(k){var r=hc.reserved[k];if(r.id===p.id&&!r.released){hc.reserved[k]={id:p.id,released:true,at:Date.now()};freed=true}});
+    lastReserveKey='';
+    if(freed){try{saveDB();await syncClientsUp();derived()}catch(e){/* offline: released on the next upload */}}
+    return;
+  }
   var key=p.id+'|'+p.clientNo.trim()+'|'+p.projNo.trim();
   if(key===lastReserveKey)return;                    /* only when the number actually changed */
   try{
