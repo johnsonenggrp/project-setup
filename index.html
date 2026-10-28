@@ -872,9 +872,17 @@ function upsertClient(P){
   if(cons.length)c.contacts=JSON.parse(JSON.stringify(cons));
   if(JSON.stringify([c.name,c.addr,c.contacts])!==before)c.updated=Date.now();
 }
+/* a reservation whose project is known here but no longer has that number (changed or cleared) is left over, so it does not count */
+function staleReservation(r,k,no){
+  var p=DB.projects.filter(function(x){return x.id===r.id})[0],pn=null,cn=null;
+  if(p){pn=p.projNo;cn=p.clientNo}
+  else if(typeof TIDX!=='undefined'&&TIDX&&TIDX.sum&&TIDX.sum[r.id]){pn=TIDX.sum[r.id].projNo;cn=TIDX.sum[r.id].clientNo}
+  else return false;
+  return parseInt(pn,10)!==parseInt(k,10)||String(cn||'').trim()!==String(no||'').trim();
+}
 function usedProjNums(no,exceptId){
   var u=[],c=findClientByNo(no);if(c&&c.known)u=u.concat(c.known);
-  if(c&&c.reserved)Object.keys(c.reserved).forEach(function(k){if(c.reserved[k].id!==exceptId&&!c.reserved[k].released){var n=parseInt(k,10);if(!isNaN(n))u.push(n)}});
+  if(c&&c.reserved)Object.keys(c.reserved).forEach(function(k){if(c.reserved[k].id!==exceptId&&!c.reserved[k].released&&!staleReservation(c.reserved[k],k,no)){var n=parseInt(k,10);if(!isNaN(n))u.push(n)}});
   DB.projects.forEach(function(p){if(p.clientNo===no&&p.id!==exceptId&&p.projNo){var n=parseInt(p.projNo,10);if(!isNaN(n))u.push(n)}});
   return u;
 }
